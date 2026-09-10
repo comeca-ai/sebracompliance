@@ -9,27 +9,33 @@ const DEFAULT_BASE =
 const DEFAULT_MODEL = "kimi-k3";
 const MAX_BYTES = 3_500_000;
 
-const SYSTEM = `Você é o agente de compliance da Unidade de Integridade do SEBRAE/RO.
+const SYSTEM_DOC = `Você é o agente de compliance da Unidade de Integridade do SEBRAE/RO.
 Leia o documento. Se for imagem, faça OCR. Extraia só o que está escrito.
 Não invente CNPJ, prazo, cláusula ou norma.
 Responda APENAS um JSON, sem markdown:
 {"texto":"transcrição","cnpj":null,"contrato":null,"obrigacoes":[{"clausula":"...","prazo":null,"norma":null}],"ressalvas":"..."}
 Português. Saída da IA não cadastra sozinha. Humano decide.`;
 
+const SYSTEM_REGRAS = `Você é o agente de compliance da Unidade de Integridade do SEBRAE/RO.
+O arquivo é um catálogo de regras, normas ou política. Extraia regras acionáveis.
+Não invente cláusula. Responda APENAS um JSON, sem markdown:
+{"regras":[{"id":"R-01","norma":"ISO 37001","clausula":"texto da regra","gravidade":"alta","palavras":["ceis","inidoneo"]}]}
+gravidade: critica, alta, media ou baixa. Português. Humano decide o cadastro.`;
+
 function parseJson(text: string) {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
-  if (start < 0 || end <= start) return { texto: text, obrigacoes: [], ressalvas: "JSON não estruturado." };
+  if (start < 0 || end <= start) return { texto: text, obrigacoes: [], regras: [], ressalvas: "JSON não estruturado." };
   try {
     return JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
   } catch {
-    return { texto: text, obrigacoes: [], ressalvas: "Falha ao ler JSON da IA." };
+    return { texto: text, obrigacoes: [], regras: [], ressalvas: "Falha ao ler JSON da IA." };
   }
 }
 
 export async function lerDocumento(
   env: OcrEnv,
-  input: { filename: string; mime: string; data: string },
+  input: { filename: string; mime: string; data: string; modo?: string },
 ): Promise<Response> {
   const key = env.KIMI_API_KEY;
   if (!key) {
@@ -52,20 +58,29 @@ export async function lerDocumento(
   const mime = (input.mime || "application/octet-stream").toLowerCase();
   const image = mime.startsWith("image/");
   const textish = mime.startsWith("text/") || mime === "application/json";
-  const content: unknown[] = [{ type: "text", text: `Arquivo: ${input.filename} (${mime}).` }];
+  const modo = input.modo === "regras" ? "regras" : "documento";
+  const content: unknown[] = [
+    { type: "text", text: `Arquivo: ${input.filename} (${mime}). Modo: ${modo}.` },
+  ];
   if (image) {
     content.push({
       type: "image_url",
       image_url: { url: `data:${mime};base64,${raw}` },
     });
   } else if (textish) {
-    content.push({ type: "text", text: new TextDecoder("utf-8", { fatal: false }).decode(bytes).slice(0, 24000) });
+    content.push({
+      type: "text",
+      text: new TextDecoder("utf-8", { fatal: false }).decode(bytes).slice(0, 24000),
+    });
   } else if (mime === "application/pdf") {
     content.push({
       type: "text",
       text:
         "PDF binário. Se não houver texto abaixo, peça ao usuário um PNG/JPG da página. Tentativa de leitura UTF-8:\n" +
-        new TextDecoder("utf-8", { fatal: false }).decode(bytes).replace(/[^\x09\x0a\x0d\x20-\x7e\u00a0-\u024f]/g, " ").slice(0, 8000),
+        new TextDecoder("utf-8", { fatal: false })
+          .decode(bytes)
+          .replace(/[^\x09\x0a\x0d\x20-\x7e\u00a0-\u024f]/g, " ")
+          .slice(0, 8000),
     });
   } else {
     return Response.json(
@@ -87,7 +102,7 @@ export async function lerDocumento(
       enable_thinking: false,
       max_tokens: 1800,
       messages: [
-        { role: "system", content: SYSTEM },
+        { role: "system", content: modo === "regras" ? SYSTEM_REGRAS : SYSTEM_DOC },
         { role: "user", content },
       ],
     }),
@@ -112,6 +127,7 @@ export async function lerDocumento(
     provedor: "Kimi · Alibaba MaaS · espaço comercial",
     arquivo: input.filename,
     mime,
+    modo,
     uso: payload.usage ?? null,
     ...extracted,
     aviso: "IA sugere. Humano decide. Arquivo saiu do tenant para a API Kimi (Singapura).",

@@ -113,14 +113,15 @@
       </div>
       <nav id="nav-desk">
         <p class="g-label">Mesa · TR 3.1</p>
-        <a href="#contratos" data-tab="contratos" data-group="Mesa · TR 3.1" data-title="Contratos">Contratos</a>
+        <a href="#documentos" data-tab="documentos" data-group="Mesa · TR 3.1" data-title="Documentos">Documentos</a>
+        <a href="#regras" data-tab="regras" data-group="Mesa · TR 3.1" data-title="Regras">Regras</a>
+        <a href="#contratos" data-tab="contratos" data-group="Mesa · TR 3.1" data-title="Revisão">Revisão</a>
         <a href="#tarefas" data-tab="tarefas" data-group="Mesa · TR 3.1" data-title="Tarefas">Tarefas</a>
         <a href="#painel" data-tab="painel" data-group="Mesa · TR 3.1" data-title="Painel">Painel</a>
         <p class="g-label">Due diligence · TR 3.3</p>
         <a href="#terceiros" data-tab="terceiros" data-group="Due diligence · TR 3.3" data-title="Terceiros">Terceiros</a>
         <a href="#pep" data-tab="pep" data-group="Due diligence · TR 3.3" data-title="PEP e QSA">PEP e QSA</a>
         <a href="#noticias" data-tab="noticias" data-group="Due diligence · TR 3.3" data-title="Notícias">Notícias</a>
-        <a href="#documentos" data-tab="documentos" data-group="Due diligence · TR 3.3" data-title="Documentos">Documentos</a>
         <p class="g-label">Governança · TR 3.3</p>
         <a href="#controles" data-tab="controles" data-group="Governança · TR 3.3" data-title="Controles">Controles</a>
         <a href="#canal" data-tab="canal" data-group="Governança · TR 3.3" data-title="Canal">Canal</a>
@@ -144,7 +145,7 @@
         </div>
       </header>
       <div class="pad">
-        <p class="demo">DEMO. Contratos e hits são amostra da Fase 1 do TR (5 a 20 de um tipo). Não é base de produção do SEBRAE/RO. IA sugere. Humano decide.</p>
+        <p class="demo">DEMO. Sem amostra. Você sobe documentos e regras. Arquivo lido pela IA sai do tenant. Humano decide o cadastro.</p>
         <main id="app">Carregando amostra…</main>
         <footer>Hit em base pública não é decisão. Investigado não é condenado. Fonte: Termo de Referência SEBRAE/RO, 18/08/2026.</footer>
       </div>
@@ -155,14 +156,15 @@
     <p style="font-family:Newsreader,Georgia,serif;font-size:20px;margin:0 0 12px">Módulos</p>
     <nav id="nav-mob">
         <p class="g-label">Mesa · TR 3.1</p>
-        <a href="#contratos" data-tab="contratos" data-group="Mesa · TR 3.1" data-title="Contratos">Contratos</a>
+        <a href="#documentos" data-tab="documentos" data-group="Mesa · TR 3.1" data-title="Documentos">Documentos</a>
+        <a href="#regras" data-tab="regras" data-group="Mesa · TR 3.1" data-title="Regras">Regras</a>
+        <a href="#contratos" data-tab="contratos" data-group="Mesa · TR 3.1" data-title="Revisão">Revisão</a>
         <a href="#tarefas" data-tab="tarefas" data-group="Mesa · TR 3.1" data-title="Tarefas">Tarefas</a>
         <a href="#painel" data-tab="painel" data-group="Mesa · TR 3.1" data-title="Painel">Painel</a>
         <p class="g-label">Due diligence · TR 3.3</p>
         <a href="#terceiros" data-tab="terceiros" data-group="Due diligence · TR 3.3" data-title="Terceiros">Terceiros</a>
         <a href="#pep" data-tab="pep" data-group="Due diligence · TR 3.3" data-title="PEP e QSA">PEP e QSA</a>
         <a href="#noticias" data-tab="noticias" data-group="Due diligence · TR 3.3" data-title="Notícias">Notícias</a>
-        <a href="#documentos" data-tab="documentos" data-group="Due diligence · TR 3.3" data-title="Documentos">Documentos</a>
         <p class="g-label">Governança · TR 3.3</p>
         <a href="#controles" data-tab="controles" data-group="Governança · TR 3.3" data-title="Controles">Controles</a>
         <a href="#canal" data-tab="canal" data-group="Governança · TR 3.3" data-title="Canal">Canal</a>
@@ -180,6 +182,19 @@
   const LABEL = { real:"real na PoC", parcial:"parcial", simulado:"simulado", fora:"fora da Fase 1" };
   const HOJE = "2026-09-10";
   let DATA = { CONTRATOS: [], TERCEIROS: [], NORMAS: [], GRUPOS: [], CONTROLES: [], TAREFAS: [], TITULARES: [], ROPA: [], PROCESSOS: [], MEMBROS: [], COLABORADORES: [], EVENTOS: [], SISTEMAS: [], COBERTURA: {}, EDITAL: {SECTIONS:[],STACK:[],PHASES:[],SLA_SEV:[],RISKS_PEN:[],RISKS_OBR:[],RISKS_CONTR:[]}, contagem: {} };
+
+  const AK = "sebracompliance-acervo-v1";
+  function acervo() {
+    try { const p = JSON.parse(localStorage.getItem(AK)||"{}"); return { documentos: p.documentos||[], regras: p.regras||[] }; }
+    catch { return { documentos: [], regras: [] }; }
+  }
+  function saveA(a) { localStorage.setItem(AK, JSON.stringify(a)); }
+  function cruzar(texto, regras) {
+    const fold = s => String(s||"").normalize("NFD").replace(/\p{M}/gu,"").toLowerCase();
+    const t = fold(texto);
+    return regras.filter(r => (r.palavras||[]).some(p => p && t.includes(fold(p))) || fold(r.clausula).slice(0,48).length>8 && t.includes(fold(r.clausula).slice(0,48))).map(r => r.id);
+  }
+
   let open = 0, hitl = false, nota = "", msg = "", trilhas = {}, denuncias = [];
 
   const selo = (t, text) => `<span class="selo ${TONE[t]||""}">${esc(text)}</span>`;
@@ -187,7 +202,7 @@
 
   function tab() {
     const h = (location.hash || "#contratos").slice(1).split("?")[0];
-    return ["contratos","painel","controles","tarefas","terceiros","canal","documentos","noticias","pep","privacidade","juridico","organizacoes","integracoes","edital","relatorio"].includes(h) ? h : "contratos";
+    return ["contratos","painel","controles","tarefas","terceiros","canal","documentos","regras","noticias","pep","privacidade","juridico","organizacoes","integracoes","edital","relatorio"].includes(h) ? h : "contratos";
   }
 
   function decidir(tipo) {
@@ -201,221 +216,98 @@
     render();
   }
 
+
   function mesa() {
-    const list = DATA.CONTRATOS.map((c,i) => `
-      <button type="button" class="${i===open?"on":""}" data-open="${i}">
-        <span class="id">${esc(c.id)}</span>
-        <span style="display:block;font-size:14px">${esc(c.nome)}</span>
-        <span class="selos">${selo(c.selo,c.label)}${selo("",c.tipo)}</span>
-      </button>`).join("");
-    const c = DATA.CONTRATOS[open] || DATA.CONTRATOS[0];
-    const hist = trilhas[c.id] || [];
-    return `<div class="grid mesa">
-      <aside class="card list">${list}</aside>
+    const docs = acervo().documentos;
+    const regras = acervo().regras;
+    if (!docs.length) return `<h2>Mesa vazia</h2>
+      <p style="color:var(--quiet)">Não há amostra. Suba as regras e os contratos desta unidade.</p>
+      <div class="actions"><a class="btn" href="#regras">Subir regras</a><a class="btn ghost" href="#documentos">Subir documentos</a></div>`;
+    const i = Math.min(open, docs.length-1);
+    const d = docs[i];
+    const list = docs.map((c,n)=>`<button type="button" class="${n===i?"on":""}" data-open="${n}">
+      <span class="id">${esc(c.id)}</span><span style="display:block;font-size:14px">${esc(c.nome)}</span>
+      ${selo(c.regras&&c.regras.length?"alta":"limpo", c.regras&&c.regras.length?c.regras.length+" regra(s)":"sem cruzamento")}</button>`).join("");
+    const hits = (d.regras||[]).map(id => {
+      const r = regras.find(x=>x.id===id);
+      return `<div class="alert">${selo(r&&r.gravidade, r&&r.gravidade||id)}<p style="font-size:14px">${esc(r? r.id+" · "+r.norma+" · "+r.clausula : id)}</p></div>`;
+    }).join("") || `<p style="color:var(--quiet)">Nenhuma regra bateu neste texto.</p>`;
+    return `<div class="grid mesa"><aside class="card list">${list}</aside>
       <article class="card ficha">
-        <div class="selos">${selo(c.selo,c.label)}${selo("",c.tipo)}${selo("",c.norma)}</div>
-        <h2>${esc(c.nome)}</h2>
-        <p style="color:var(--quiet);margin:0 0 12px">${esc(c.id)} · ${esc(c.cnpj)}</p>
-        <p class="id">Score ${c.score} · P${c.prob} × I${c.impacto}${c.controle?" · "+esc(c.controle):""}</p>
-        ${c.fatos.map(f=>`<p style="font-size:14px">${esc(f)}</p>`).join("")}
-        <p class="id">Fonte: ${esc(c.fontes)}</p>
-        ${c.alertas.map(a=>`<div class="alert"><div class="selos">${selo(a.sev,a.sev)}${selo("",a.agente)}</div><strong>${esc(a.t)}</strong><p style="color:var(--quiet);margin:8px 0 0;font-size:14px">${esc(a.d)}</p></div>`).join("")}
-        ${c.tarefa?`<p style="font-size:14px">Tarefa: ${esc(c.tarefa)}${c.prazo?" · prazo "+c.prazo:""}</p>`:""}
-        <label class="hitl"><input type="checkbox" id="hitl" ${hitl?"checked":""}/> Confirmo revisão humana desta saída</label>
-        <textarea id="nota" placeholder="Nota do analista. Obrigatória para devolver.">${esc(nota)}</textarea>
-        <div class="actions">
-          <button class="btn" id="aprovar">Aprovar alerta</button>
-          <button class="btn ghost" id="devolver">Devolver à área</button>
-        </div>
-        ${msg?`<p class="ok">${esc(msg)}</p>`:""}
-        <ol style="color:var(--quiet);font-size:14px">${hist.length?hist.map(h=>`<li>${esc(h)}</li>`).join(""):"<li>Sem decisão ainda.</li>"}</ol>
-      </article>
-    </div>`;
+        <h2>${esc(d.nome)}</h2>
+        <p class="id">${esc(d.id)} · ${esc(d.quando||"")}</p>
+        <p style="white-space:pre-wrap;font-size:14px">${esc(d.texto||"")}</p>
+        <h3>Regras cruzadas</h3>${hits}
+        <label class="hitl"><input type="checkbox" id="hitl"/> Confirmo revisão humana desta saída</label>
+        <textarea id="nota" placeholder="Nota do analista."></textarea>
+        <div class="actions"><button class="btn" id="aprovar">Aprovar alerta</button><button class="btn ghost" id="devolver">Devolver à área</button></div>
+        <p class="ok" id="mmsg"></p>
+      </article></div>`;
   }
 
   function painel() {
-    const cs = DATA.CONTRATOS;
-    const bloqueados = cs.filter(c => c.selo==="bloqueado"||c.selo==="sancao").length;
-    const severos = cs.filter(c => c.alertas.some(a => a.sev==="critica"||a.sev==="alta")).length;
-    const tarefas = cs.filter(c => c.tarefa);
-    const atrasadas = tarefas.filter(c => c.prazo && c.prazo < HOJE).length;
-    const kpis = [
-      ["Contratos na amostra", cs.length, "Fase 1 · um tipo por vez no TR"],
-      ["Hits severos", severos, "Crítica ou alta · ainda sem decisão"],
-      ["Pagamentos barrados", bloqueados, "IA pediu. Humano confirma."],
-      ["Tarefas atrasadas", atrasadas, `De ${tarefas.length} geradas por cláusula`],
-    ];
-    const cells = (p,i) => cs.filter(c => c.prob===p && c.impacto===i);
-    const tom = (p,i) => { const n=p*i; return n>=16?"c-hi":n>=9?"c-md":n>=4?"c-lo":"c-ok"; };
-    let matrix = `<table class="matrix"><thead><tr><th>P \\ I</th>${[1,2,3,4,5].map(i=>`<th>${i}</th>`).join("")}</tr></thead><tbody>`;
-    for (const p of [5,4,3,2,1]) {
-      matrix += `<tr><th>${p}</th>`;
-      for (const i of [1,2,3,4,5]) {
-        matrix += `<td class="${tom(p,i)}">${cells(p,i).map(c=>esc(c.id)).join("<br>")}</td>`;
-      }
-      matrix += `</tr>`;
-    }
-    matrix += `</tbody></table>`;
-    return `
-      <h2>Painel da unidade</h2>
-      <p style="color:var(--quiet)">Item 3.1 (painéis) e 3.3 (matriz, catálogo, tarefas). Amostra DEMO.</p>
+    const a = acervo();
+    const hits = a.documentos.reduce((n,d)=>n+(d.regras||[]).length,0);
+    const kpis=[["Documentos",a.documentos.length,"Enviados por você"],["Regras",a.regras.length,"Catálogo desta unidade"],["Cruzamentos",hits,"Regra × documento"],["Fila HITL",hits,"Humano ainda decide"]];
+    return `<h2>Painel da unidade</h2>
+      <p style="color:var(--quiet)">Conta só o que você subiu neste navegador. Sem amostra.</p>
       <div class="kpis">${kpis.map(k=>`<article class="kpi"><p style="color:var(--quiet);font-size:12px;text-transform:uppercase;margin:0">${k[0]}</p><b>${k[1]}</b><p style="color:var(--subtle);font-size:12px;margin:0">${k[2]}</p></article>`).join("")}</div>
-      <h3>Matriz de risco</h3>
-      <p style="color:var(--quiet);font-size:14px">Probabilidade × impacto. ISO 31000.</p>
-      <div style="overflow-x:auto">${matrix}</div>
-      <h3>Tarefas geradas por cláusula</h3>
-      <div style="overflow-x:auto"><table><thead><tr><th>Contrato</th><th>Controle</th><th>Tarefa</th><th>Prazo</th><th>Status</th></tr></thead><tbody>
-      ${tarefas.map(c => { const a=c.prazo&&c.prazo<HOJE; return `<tr><td class="id">${esc(c.id)}</td><td>${esc(c.controle||"")}</td><td>${esc(c.tarefa)}</td><td class="id">${esc(c.prazo||"")}</td><td>${selo(a?"alta":"media", a?"atrasada":"aberta")}</td></tr>`; }).join("")}
-      </tbody></table></div>
-      <h3>Catálogo normativo mínimo</h3>
-      <div class="normas">${DATA.NORMAS.map(n=>`<article class="norma"><p class="id" style="color:var(--primary);margin:0">${esc(n.id)}</p><p style="font-weight:600;margin:4px 0">${esc(n.tema)}</p><p style="color:var(--quiet);font-size:12px;margin:0">${esc(n.uso)}</p></article>`).join("")}</div>`;
+      <p>${!a.regras.length?'<a href="#regras">Subir regras</a> ':''}${!a.documentos.length?'<a href="#documentos">Subir documentos</a>':''}</p>`;
   }
 
   function terceiros() {
     return `<h2>Screening de terceiros</h2>
-      <p style="color:var(--quiet)">Checagem mínima do TR: Portal da Transparência, OpenSanctions e bases federais de sanção.</p>
-      <div style="overflow-x:auto"><table><thead><tr><th>Fornecedor</th><th>CNPJ</th><th>Hit</th><th>Base</th><th>Score</th></tr></thead><tbody>
-      ${DATA.TERCEIROS.map(r=>`<tr><td>${esc(r[0])}</td><td class="id">${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td class="id">${esc(r[4])}</td></tr>`).join("")}
-      </tbody></table></div>`;
+      <p style="color:var(--quiet)">Sem lista pré-carregada. Informe o CNPJ no fluxo PEP/QSA.</p>
+      <div class="actions"><a class="btn" href="#pep">Abrir PEP / QSA</a><a class="btn ghost" href="#noticias">Buscar notícias</a></div>`;
   }
 
-
   function controles() {
-    const HOJE = "2026-09-10";
+    const rs = acervo().regras;
+    if (!rs.length) return `<h2>Controles internos</h2><p style="color:var(--quiet)">Os controles são as regras que você cadastrar. <a href="#regras">Abrir catálogo</a>.</p>`;
     return `<h2>Controles internos</h2>
-      <p style="color:var(--quiet)">Item 3.3 do TR. Catálogo ligado à cláusula. IA gera a tarefa. Humano testa e fecha.</p>
-      <div class="normas">${DATA.CONTROLES.map(c => {
-        const ts = DATA.TAREFAS.filter(t => t.controle===c.id);
-        const atras = ts.filter(t => t.prazo < HOJE).length;
-        return `<article class="norma">
-          <div class="selos">${selo("",c.id)}${selo("",c.norma)}${selo("",c.agente)}</div>
-          <p style="font-weight:600;margin:8px 0 4px">${esc(c.nome)}</p>
-          <p style="font-size:14px">${esc(c.clausula)}</p>
-          <p class="id">Teste: ${esc(c.teste)}</p>
-          <p style="color:var(--quiet);font-size:14px">${ts.length} tarefa${ts.length===1?"":"s"}${atras?` · ${atras} atrasada${atras===1?"":"s"}`:""}</p>
-          <a href="#tarefas">Ver fila</a>
-        </article>`;
-      }).join("")}</div>`;
+      <div class="normas">${rs.map(r=>`<article class="norma">${selo("",r.id)}${selo(r.gravidade,r.gravidade)}<p style="font-weight:600">${esc(r.norma)}</p><p style="font-size:14px">${esc(r.clausula)}</p></article>`).join("")}</div>`;
   }
 
   function tarefas() {
-    const HOJE = "2026-09-10";
-    const ctrl = id => DATA.CONTROLES.find(c => c.id===id);
-    const st = t => (window._feitas||{})[t.id] ? "feita" : (t.prazo < HOJE ? "atrasada" : "aberta");
-    window._feitas = window._feitas || {};
-    window._thitl = window._thitl || {};
-    const filtro = window._tfiltro || "todas";
-    const lista = DATA.TAREFAS.map(t => ({t, st: st(t)})).filter(x => filtro==="todas" || x.st===filtro);
-    const i = Math.min(window._topen||0, Math.max(0, lista.length-1));
-    const atual = lista[i];
-    const chips = ["todas","atrasada","aberta","feita"].map(f => `<button class="btn ${f===filtro?"":"ghost"}" data-tfiltro="${f}">${f[0].toUpperCase()+f.slice(1)}</button>`).join("");
-    const list = lista.map((x,n) => `<button type="button" class="${n===i?"on":""}" data-topen="${n}">
-        <span class="id">${esc(x.t.id)}</span>
-        <span style="display:block;font-size:14px">${esc(x.t.titulo)}</span>
-        <span class="selos">${selo(x.st,x.st)}${selo("",x.t.controle)}</span>
-      </button>`).join("");
-    let ficha = `<p style="color:var(--quiet)">Nenhuma tarefa neste filtro.</p>`;
-    if (atual) {
-      const c = ctrl(atual.t.controle) || {};
-      ficha = `<article class="card ficha">
-        <div class="selos">${selo(atual.st,atual.st)}${selo(atual.t.prioridade,atual.t.prioridade)}${selo("",atual.t.controle)}${selo("",c.norma||"")}</div>
-        <h2>${esc(atual.t.titulo)}</h2>
-        <p style="color:var(--quiet)">${esc(atual.t.id)} · prazo ${esc(atual.t.prazo)}</p>
-        <p style="font-size:14px">Contrato <a href="#contratos">${esc(atual.t.contrato)}</a> · ${esc(atual.t.fornecedor)}</p>
-        <p style="font-size:14px">${esc(c.clausula||"")}</p>
-        <p class="id">Teste: ${esc(c.teste||"")}</p>
-        ${atual.st==="feita" ? `<p class="ok">Encerrada nesta sessão.</p>` : `
-          <label class="hitl"><input type="checkbox" id="thitl" ${window._thitl[atual.t.id]?"checked":""}/> Confirmo revisão humana desta tarefa</label>
-          <div class="actions"><button class="btn" id="tfechar">Encerrar tarefa</button></div>`}
-        <p class="ok" id="tmsg"></p>
-      </article>`;
-    }
-    return `<h2>Tarefas geradas por cláusula</h2>
-      <p style="color:var(--quiet)">Calendário da amostra. Fechar exige humano. Sem e-mail nesta Fase 1.</p>
-      <div class="actions" style="margin-bottom:16px">${chips}</div>
-      <div class="grid mesa"><aside class="card list">${list}</aside>${ficha}</div>`;
+    const a = acervo();
+    const itens = [];
+    a.documentos.forEach(d => (d.regras||[]).forEach(rid => itens.push({d, rid, r: a.regras.find(x=>x.id===rid)})));
+    if (!itens.length) return `<h2>Tarefas</h2><p style="color:var(--quiet)">Tarefas nascem quando um documento cruza uma regra. <a href="#regras">Regras</a> e <a href="#documentos">documentos</a>.</p>`;
+    return `<h2>Tarefas</h2>
+      <table><thead><tr><th>Documento</th><th>Regra</th><th>Cláusula</th></tr></thead><tbody>
+      ${itens.map(t=>`<tr><td>${esc(t.d.nome)}</td><td class="id">${esc(t.rid)}</td><td>${esc(t.r?t.r.clausula:"—")}</td></tr>`).join("")}
+      </tbody></table>`;
   }
 
 
-
-
-  function pep() {
-    const r = window._pep;
-    const cnpj = window._pcnpj || "12.345.678/0001-90";
-    const chips = (DATA.TERCEIROS||[]).map(t => {
-      const nome = Array.isArray(t)? t[0]:t;
-      const c = Array.isArray(t)? t[1]:"";
-      return `<button class="btn ghost" data-pcnpj="${esc(c)}">${esc(nome)}</button>`;
-    }).join("");
-    const steps = (r && r.etapa ? r.etapa : ["Identificar","QSA","PEP / mídia","HITL","Registro"]).map((s,i)=>`<span class="selo ${i>=3?"":"o"}">${i+1} ${esc(s)}</span>`).join(" ");
-    if (!r) {
-      return `<h2>Fluxo PEP e QSA</h2>
-        <p style="color:var(--quiet)">Sócios da empresa. Hit PEP não é condenação. Consulta QSA no Worker (BrasilAPI) ou amostra DEMO.</p>
-        <p>${steps}</p>
-        <div class="actions">
-          <input id="pcnpj" value="${esc(cnpj)}" placeholder="CNPJ" style="max-width:240px"/>
-          <button class="btn" id="pbuscar">Rodar fluxo</button>
-        </div>
-        <div class="actions" style="margin-top:8px">${chips}</div>
-        <p class="ok" id="pstatus">Nada cadastra sozinho. Humano decide no fim.</p>`;
-    }
-    const socios = (r.socios||[]).map(s=>`<tr>
-      <td>${esc(s.nome)}</td><td>${esc(s.qualificacao)}</td><td class="id">${esc(s.entrada||"—")}</td>
-      <td>${s.pep?selo("alta","PEP"):selo("limpo","sem hit")}</td>
-      <td>${esc(s.fonte)}</td>
-    </tr>`).join("");
-    const news = (r.noticias||[]).map(n=>`<tr><td>${n.adversa?selo("alta","adversa"):selo("limpo","clipping")}</td>
-      <td><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.titulo)}</a></td>
-      <td>${esc(n.fonte)}</td></tr>`).join("");
-    return `<h2>Fluxo PEP e QSA</h2>
-      <p style="color:var(--quiet)">${esc(r.aviso)}</p>
-      <p>${steps}</p>
-      <div class="actions">
-        <input id="pcnpj" value="${esc(cnpj)}" placeholder="CNPJ" style="max-width:240px"/>
-        <button class="btn" id="pbuscar">Rodar fluxo</button>
-      </div>
-      <div class="actions" style="margin-top:8px">${chips}</div>
+  function regras() {
+    const a = acervo();
+    const pend = window._rpend || [];
+    const rows = a.regras.map(r=>`<tr><td class="id">${esc(r.id)}</td><td>${esc(r.norma)}</td><td>${esc(r.clausula)}</td><td>${selo(r.gravidade,r.gravidade)}</td>
+      <td><button class="btn ghost" data-rdel="${esc(r.id)}">Remover</button></td></tr>`).join("");
+    const pendHtml = pend.length? `<article class="card ficha" style="margin-top:16px"><h3>Leitura da IA</h3>
+      <ul>${pend.map(r=>`<li>${esc(r.id)} · ${esc(r.norma)} · ${esc(r.clausula)}</li>`).join("")}</ul>
+      <label class="hitl"><input type="checkbox" id="rhitl"/> Confirmo revisão humana destas regras</label>
+      <button class="btn" id="rgravar">Cadastrar regras</button><p class="ok" id="rmsg"></p></article>` : "";
+    return `<h2>Regras e catálogo</h2>
+      <p style="color:var(--quiet)">Suba o PDF da política ou cadastre a cláusula. Nada vem pré-carregado.</p>
+      <article class="card ficha">
+        <label class="id" for="rarq">Arquivo de regras</label>
+        <input type="file" id="rarq" accept="image/png,image/jpeg,image/webp,text/plain,application/pdf"/>
+        <div class="actions"><button class="btn" id="rler">Ler com Kimi</button></div>
+        <p class="ok" id="rstatus"></p>
+      </article>
+      ${pendHtml}
       <article class="card ficha" style="margin-top:16px">
-        <div class="selos">${selo(r.recomendacao==="limpo"?"limpo":"alta", r.recomendacao)}${selo("", "score "+r.score)}${r.demo?selo("parcial","DEMO"):selo("limpo","QSA público")}</div>
-        <h2>${esc(r.razao)}</h2>
-        <p class="id">${esc(r.cnpj)} · ${esc(r.situacao)} · ${esc(r.origem_qsa)}</p>
-        <p style="font-size:14px">${r.pep_count} sócio(s) com hit PEP. Recomendação da IA: ${esc(r.recomendacao)}.</p>
-        <h3>Quadro societário</h3>
-        <table><thead><tr><th>Sócio</th><th>Qualificação</th><th>Entrada</th><th>PEP</th><th>Fonte</th></tr></thead><tbody>${socios||"<tr><td colspan=5>QSA vazio.</td></tr>"}</tbody></table>
-        <h3>Mídia dos sócios</h3>
-        <table><thead><tr><th>Selo</th><th>Título</th><th>Fonte</th></tr></thead><tbody>${news||"<tr><td colspan=3>Sem clipping.</td></tr>"}</tbody></table>
-        <label class="hitl"><input type="checkbox" id="pephitl"/> Confirmo revisão humana desta triagem PEP</label>
-        <div class="actions">
-          <button class="btn" id="plimpar">Marcar limpo</button>
-          <button class="btn ghost" id="psinal">Sinalizar</button>
-          <button class="btn ghost" id="pbloq">Bloquear pagamento</button>
-        </div>
-        <p class="ok" id="pmsg"></p>
-      </article>`;
-  }
-
-  function noticias() {
-    const r = window._news;
-    const q = window._nq || "";
-    const chips = (DATA.TERCEIROS||[]).map(t => {
-      const nome = Array.isArray(t)? t[0] : t;
-      return `<button class="btn ghost" data-nq="${esc(nome)}">${esc(nome)}</button>`;
-    }).join("");
-    const rows = (r && r.itens ? r.itens : []).map(n => `<tr>
-      <td>${n.adversa?selo("alta","adversa"):selo("limpo","clipping")}</td>
-      <td><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.titulo)}</a></td>
-      <td>${esc(n.fonte)}</td>
-      <td class="id">${esc(n.data)}</td>
-    </tr>`).join("");
-    return `<h2>Notícias adversas</h2>
-      <p style="color:var(--quiet)">Google Notícias via RSS, só no Worker. Clipping ≠ sanção. Humano classifica.</p>
-      <div class="actions">
-        <input id="nq" type="search" value="${esc(q)}" placeholder="Fornecedor, CNPJ ou termo" style="max-width:360px"/>
-        <button class="btn" id="nbuscar">Buscar no Google News</button>
-      </div>
-      <div class="actions" style="margin-top:8px">${chips}</div>
-      <p class="ok" id="nstatus">${r?esc(r.fonte)+" · "+r.total+" itens · "+r.adversas+" com termo adverso"):"Busca feita no Cloudflare, não no navegador."}</p>
-      ${r?`<table><thead><tr><th>Selo</th><th>Título</th><th>Fonte</th><th>Data</th></tr></thead><tbody>${rows||"<tr><td colspan=4>Nada encontrado.</td></tr>"}</tbody></table>`:""}`;
+        <h3>Cadastrar à mão</h3>
+        <input id="rid" placeholder="Id (R-01)"/>
+        <input id="rnorma" placeholder="Norma" style="margin-top:8px"/>
+        <textarea id="rclaus" placeholder="Cláusula"></textarea>
+        <input id="rpal" placeholder="Palavras-chave, vírgula" style="margin-top:8px"/>
+        <div class="actions"><button class="btn" id="radd">Incluir regra</button></div>
+      </article>
+      ${a.regras.length?`<table><thead><tr><th>Id</th><th>Norma</th><th>Cláusula</th><th>Gravidade</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:'<p style="color:var(--quiet)">Nenhuma regra ainda.</p>'}
+      <p><a href="#documentos">Subir documentos</a></p>`;
   }
 
   function documentos() {
@@ -434,18 +326,20 @@
         ${r.ressalvas?`<p class="id">${esc(r.ressalvas)}</p>`:""}
         <p style="color:var(--quiet);font-size:12px">${esc(r.aviso||"")}</p>
         <label class="hitl"><input type="checkbox" id="ohitl"/> Confirmo revisão humana desta extração</label>
-        <div class="actions"><button class="btn" id="ogerar">Gerar tarefas (sessão)</button></div>
+        <div class="actions"><button class="btn" id="oguardar">Guardar na mesa</button></div>
         <p class="ok" id="omsg2"></p>
       </article>` : "";
-    return `<h2>Leitura e OCR de documento</h2>
-      <p style="color:var(--quiet)">Item 3.4. Kimi-k3 no espaço comercial Alibaba (Singapura). PNG, JPG, WEBP, TXT ou PDF. Extração não cadastra sozinha.</p>
+    const saved = acervo().documentos.map(d=>`<tr><td class="id">${esc(d.id)}</td><td>${esc(d.nome)}</td><td>${esc((d.regras||[]).join(", ")||"—")}</td></tr>`).join("");
+    return `<h2>Documentos</h2>
+      <p style="color:var(--quiet)">Suba o contrato. Kimi lê. Humano confirma. ${acervo().regras.length?acervo().regras.length+" regra(s) no catálogo.":'<a href="#regras">Cadastre o catálogo</a>.'}</p>
       <article class="card ficha">
         <label class="id" for="odoc">Arquivo</label>
         <input type="file" id="odoc" accept="image/png,image/jpeg,image/webp,text/plain,application/pdf" />
         <div class="actions"><button class="btn" id="oler">Ler com Kimi</button></div>
         <p class="ok" id="ostatus"></p>
       </article>
-      ${result}`;
+      ${result}
+      ${saved?`<table style="margin-top:16px"><thead><tr><th>Id</th><th>Arquivo</th><th>Regras</th></tr></thead><tbody>${saved}</tbody></table>`:'<p style="color:var(--quiet)">Nenhum documento guardado neste navegador.</p>'}`;
   }
 
   function privacidade() {
@@ -717,8 +611,56 @@
     document.querySelectorAll("[data-nq]").forEach(b => b.onclick = () => runNews(b.dataset.nq));
     if (tab()==="noticias" && !window._news) {
       const params = new URLSearchParams((location.hash.split("?")[1]||""));
-      runNews(params.get("q") || window._nq || "SEBRAE Rondônia");
+      if (params.get("q") || window._nq) runNews(params.get("q") || window._nq);
     }
+
+
+    const rler = document.getElementById("rler");
+    if (rler) rler.onclick = async () => {
+      const f = document.getElementById("rarq").files[0];
+      const st = document.getElementById("rstatus");
+      if (!f) { st.textContent = "Escolha o arquivo de regras."; return; }
+      st.textContent = "Lendo regras com Kimi…";
+      const buf = await f.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let bin=""; for (let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+      try {
+        const res = await fetch("/api/ocr", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ filename:f.name, mime:f.type||"application/octet-stream", data:btoa(bin), modo:"regras" }) });
+        const j = await res.json();
+        if (!res.ok) { st.textContent = j.error||"Falha"; return; }
+        window._rpend = (j.regras||[]).map((x,i)=>({ id:x.id||("R-"+String(i+1).padStart(2,"0")), norma:x.norma||"norma", clausula:x.clausula||"", gravidade:x.gravidade||"media", palavras:x.palavras||[], arquivo:f.name }));
+        render();
+      } catch { st.textContent = "Rede falhou."; }
+    };
+    const rgravar = document.getElementById("rgravar");
+    if (rgravar) rgravar.onclick = () => {
+      const box = document.getElementById("rhitl");
+      const m = document.getElementById("rmsg");
+      if (!box || !box.checked) { m.textContent = "Marque a revisão humana."; return; }
+      const a = acervo();
+      a.regras = (window._rpend||[]).concat(a.regras);
+      saveA(a); window._rpend = []; render();
+    };
+    const radd = document.getElementById("radd");
+    if (radd) radd.onclick = () => {
+      const claus = document.getElementById("rclaus").value.trim();
+      if (!claus) return;
+      const a = acervo();
+      a.regras.unshift({ id: document.getElementById("rid").value.trim() || ("R-"+String(a.regras.length+1).padStart(2,"0")), norma: document.getElementById("rnorma").value.trim()||"interna", clausula: claus, gravidade:"alta", palavras: document.getElementById("rpal").value.split(",").map(s=>s.trim()).filter(Boolean) });
+      saveA(a); render();
+    };
+    document.querySelectorAll("[data-rdel]").forEach(b => b.onclick = () => { const a=acervo(); a.regras=a.regras.filter(r=>r.id!==b.dataset.rdel); saveA(a); render(); });
+    const og = document.getElementById("oguardar");
+    if (og) og.onclick = () => {
+      const box = document.getElementById("ohitl");
+      const m = document.getElementById("omsg2");
+      if (!box || !box.checked) { m.textContent = "Marque a revisão humana."; return; }
+      const r = window._ocr; if (!r) return;
+      const a = acervo();
+      const texto = r.texto||"";
+      a.documentos.unshift({ id:"DOC-"+String(Date.now()).slice(-8), nome:r.arquivo, mime:r.mime||"", quando: new Date().toISOString().slice(0,16).replace("T"," "), texto, cnpj:r.cnpj, contrato:r.contrato, obrigacoes:r.obrigacoes||[], regras: cruzar(texto, a.regras) });
+      saveA(a); window._ocr=null; render();
+    };
 
     const oler = document.getElementById("oler");
     if (oler) oler.onclick = async () => {
@@ -733,7 +675,7 @@
       for (let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
       const data = btoa(bin);
       try {
-        const res = await fetch("/api/ocr", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ filename:f.name, mime:f.type||"application/octet-stream", data }) });
+        const res = await fetch("/api/ocr", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ filename:f.name, mime:f.type||"application/octet-stream", data, modo:"documento" }) });
         const j = await res.json();
         if (!res.ok) { st.textContent = j.error || "Falha na leitura."; return; }
         window._ocr = j; render();
@@ -777,7 +719,7 @@
     document.getElementById("drawer").classList.remove("on");
     document.getElementById("veil").classList.remove("on");
     document.getElementById("openmenu").setAttribute("aria-expanded","false");
-    const views = {painel,controles,tarefas,terceiros,canal,documentos,noticias,pep,privacidade,juridico,organizacoes,integracoes,edital,relatorio};
+    const views = {painel,controles,tarefas,terceiros,canal,documentos,regras,noticias,pep,privacidade,juridico,organizacoes,integracoes,edital,relatorio};
     document.getElementById("app").innerHTML = (views[t]||mesa)();
     bind();
   }
@@ -802,7 +744,7 @@
     Object.assign(DATA, cov.data);
     const path = location.pathname.replace(/\/+$/,"") || "/";
     if (!location.hash) {
-      const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/privacidade":"#privacidade", "/juridico":"#juridico", "/organizacoes":"#organizacoes", "/integracoes":"#integracoes", "/edital":"#edital", "/documentos":"#documentos", "/noticias":"#noticias", "/pep":"#pep", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
+      const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/privacidade":"#privacidade", "/juridico":"#juridico", "/organizacoes":"#organizacoes", "/integracoes":"#integracoes", "/edital":"#edital", "/documentos":"#documentos", "/regras":"#regras", "/noticias":"#noticias", "/pep":"#pep", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
       if (map[path]) history.replaceState(null,"", map[path]);
     }
     render();

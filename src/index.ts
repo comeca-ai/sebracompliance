@@ -97,7 +97,7 @@ export default {
 
     if (path === "/api/ocr" && request.method === "POST") {
       const body = (await request.json().catch(() => null)) as
-        | { filename?: string; mime?: string; data?: string }
+        | { filename?: string; mime?: string; data?: string; modo?: string }
         | null;
       if (!body?.data || !body.filename) {
         return json({ error: "Envie filename, mime e data (base64)." }, 400);
@@ -106,6 +106,7 @@ export default {
         filename: body.filename,
         mime: body.mime || "application/octet-stream",
         data: body.data,
+        modo: body.modo,
       });
       const headers = new Headers(res.headers);
       for (const [k, v] of Object.entries(jsonHeaders)) headers.set(k, v);
@@ -162,6 +163,7 @@ export default {
       path === "/juridico" ||
       path === "/privacidade" ||
       path === "/documentos" ||
+      path === "/regras" ||
       path === "/noticias" ||
       path === "/pep" ||
       path === "/relatorio" ||
