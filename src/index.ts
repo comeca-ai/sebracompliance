@@ -3,8 +3,9 @@ import data from "./data.json";
 import { lerDocumento, type OcrEnv } from "./ocr";
 import { buscarNoticias } from "./noticias";
 import { fluxoPep } from "./pep";
+import { gravarAcervo, identidade, lerAcervo, type Acervo } from "./auth";
 
-type Env = OcrEnv & { ASSETS?: Fetcher };
+type Env = OcrEnv & { ASSETS?: Fetcher; ACERVO?: KVNamespace };
 
 const jsonHeaders: Record<string, string> = {
   "content-type": "application/json; charset=utf-8",
@@ -49,13 +50,16 @@ const OPENAPI = {
     "/api/ocr": { post: { summary: "Leitura e OCR de documento via Kimi" } },
     "/api/noticias": { get: { summary: "Busca Google Notícias no Worker" } },
     "/api/pep": { get: { summary: "QSA e triagem PEP de sócios" } },
+    "/api/me": { get: { summary: "Identidade Access (OTP Cloudflare)" } },
+    "/api/acervo": { get: { summary: "Documentos e regras do e-mail autenticado" } },
   },
 };
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
+    const user = await identidade(request, ctx);
 
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: jsonHeaders });
@@ -70,7 +74,29 @@ export default {
         demo: true,
         kimi: Boolean(env.KIMI_API_KEY),
         noticias: "google-news-rss",
+        access: Boolean(user),
+        auth: "cloudflare-access-otp",
       });
+    }
+
+    if (path === "/api/me") {
+      if (!user) return json({ error: "Sem sessão Access. Entre com o PIN do e-mail." }, 401);
+      return json({ email: user.email, name: user.name, auth: "cloudflare-access-otp" });
+    }
+
+    if (path === "/api/acervo" && request.method === "GET") {
+      if (!user) return json({ error: "Entre com o login mágico da Cloudflare." }, 401);
+      if (!env.ACERVO) return json({ documentos: [], regras: [] });
+      return json(await lerAcervo(env.ACERVO, user.email));
+    }
+
+    if (path === "/api/acervo" && request.method === "PUT") {
+      if (!user) return json({ error: "Entre com o login mágico da Cloudflare." }, 401);
+      if (!env.ACERVO) return json({ error: "KV ACERVO não ligado." }, 503);
+      const body = (await request.json().catch(() => null)) as Acervo | null;
+      if (!body) return json({ error: "JSON inválido." }, 400);
+      await gravarAcervo(env.ACERVO, user.email, body);
+      return json({ ok: true, email: user.email });
     }
 
     if (path === "/openapi.json") return json(OPENAPI);
@@ -169,7 +195,11 @@ export default {
       path === "/relatorio" ||
       path === "/seguranca"
     ) {
-      return new Response(page, { status: 200, headers: htmlHeaders });
+      const html = page.replace(
+        "window.__USER__=null",
+        `window.__USER__=${JSON.stringify(user)}`,
+      );
+      return new Response(html, { status: 200, headers: htmlHeaders });
     }
 
     return json({ error: "Rota não encontrada" }, 404);

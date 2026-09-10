@@ -133,7 +133,7 @@
         <a href="#edital" data-tab="edital" data-group="Plataforma · TR 3.4–3.6" data-title="Edital">Edital</a>
         <a href="#relatorio" data-tab="relatorio" data-group="Plataforma · TR 3.4–3.6" data-title="Segurança">Segurança</a>
 </nav>
-      <p class="id" style="margin-top:auto;padding:16px 8px 0">Tenant isolado · PoC Fase 1</p>
+      <p class="id" id="who" style="margin-top:auto;padding:16px 8px 0">Tenant isolado · PoC Fase 1</p>
     </aside>
     <div>
       <header class="top">
@@ -178,6 +178,7 @@
 </nav>
   </aside>
   <script>
+  window.__USER__=null;
   const TONE = { alto:"d", bloqueado:"d", sancao:"d", critica:"d", alta:"d", medio:"w", media:"w", pep:"w", limpo:"o", baixa:"o", real:"o", parcial:"w", simulado:"w", fora:"" };
   const LABEL = { real:"real na PoC", parcial:"parcial", simulado:"simulado", fora:"fora da Fase 1" };
   const HOJE = "2026-09-10";
@@ -188,7 +189,30 @@
     try { const p = JSON.parse(localStorage.getItem(AK)||"{}"); return { documentos: p.documentos||[], regras: p.regras||[] }; }
     catch { return { documentos: [], regras: [] }; }
   }
-  function saveA(a) { localStorage.setItem(AK, JSON.stringify(a)); }
+  function saveA(a) {
+    localStorage.setItem(AK, JSON.stringify(a));
+    if (window.__USER__ && window.__USER__.email) {
+      fetch("/api/acervo", { method:"PUT", headers:{"content-type":"application/json"}, body: JSON.stringify(a) });
+    }
+  }
+  async function hidratar() {
+    const u = window.__USER__;
+    const who = document.getElementById("who");
+    if (u && u.email && who) {
+      who.innerHTML = esc(u.email) + ' · <a href="/cdn-cgi/access/logout">Sair</a>';
+    } else if (who) {
+      who.innerHTML = 'Login mágico Cloudflare · PIN no e-mail';
+    }
+    if (u && u.email) {
+      try {
+        const r = await fetch("/api/acervo");
+        if (r.ok) {
+          const a = await r.json();
+          localStorage.setItem(AK, JSON.stringify({ documentos: a.documentos||[], regras: a.regras||[] }));
+        }
+      } catch {}
+    }
+  }
   function cruzar(texto, regras) {
     const fold = s => String(s||"").normalize("NFD").replace(/\p{M}/gu,"").toLowerCase();
     const t = fold(texto);
@@ -747,7 +771,7 @@
       const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/privacidade":"#privacidade", "/juridico":"#juridico", "/organizacoes":"#organizacoes", "/integracoes":"#integracoes", "/edital":"#edital", "/documentos":"#documentos", "/regras":"#regras", "/noticias":"#noticias", "/pep":"#pep", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
       if (map[path]) history.replaceState(null,"", map[path]);
     }
-    render();
+    hidratar().then(render);
     addEventListener("hashchange", render);
     document.getElementById("openmenu").onclick = () => {
       document.getElementById("drawer").classList.add("on");
