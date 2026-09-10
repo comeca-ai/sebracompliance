@@ -1,0 +1,13 @@
+name = "sebracompliance"
+main = "src/index.ts"
+compatibility_date = "2026-09-10"
+account_id = "749b2e9b3642e4b03321d5830e81c195"
+workers_dev = true
+
+[observability]
+enabled = true
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true

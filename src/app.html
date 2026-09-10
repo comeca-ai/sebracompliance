@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#2A4FDA" />
+  <title>Mesa de Integridade · SEBRAE/RO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#f4f6fb; --fg:#121826; --surface:#fff; --muted:#eef1f8; --quiet:#5b6478;
+      --subtle:#7a8496; --border:#d5dceb; --primary:#2A4FDA; --on:#fff; --soft:#e8edfb;
+      --danger:#c23b32; --warn:#b45309; --ok:#1b7a4a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 "Source Sans 3", system-ui, sans-serif; }
+    h1,h2,h3 { font-family: Newsreader, Georgia, serif; font-weight: 600; }
+    a { color: var(--primary); }
+    button, [role="button"] { cursor: pointer; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 64px; }
+    header { border-bottom: 1px solid var(--border); padding: 14px 0; }
+    .brand { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; }
+    .brand h1 { margin: 0; font-size: 22px; line-height: 1.15; }
+    .brand p { margin: 0; color: var(--quiet); font-size: 12px; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    nav a {
+      min-height: 44px; padding: 0 12px; display: inline-flex; align-items: center;
+      border: 1px solid var(--border); background: var(--surface); color: var(--quiet);
+      text-decoration: none; font-size: 14px;
+    }
+    nav a.on { background: var(--primary); color: var(--on); border-color: var(--primary); }
+    .demo { margin-top: 12px; border: 1px solid var(--border); background: var(--soft); padding: 8px 10px; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--quiet); }
+    .grid { margin-top: 16px; display: grid; gap: 16px; }
+    @media (min-width: 800px) { .grid.mesa { grid-template-columns: 320px 1fr; min-height: 70vh; } }
+    .card { border: 1px solid var(--border); background: var(--surface); }
+    .list button {
+      display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--border);
+      border-left: 4px solid transparent; background: transparent; padding: 10px 12px; color: var(--fg);
+    }
+    .list button.on { background: var(--soft); border-left-color: var(--primary); }
+    .id { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--subtle); }
+    .selos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .selo { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--border); padding: 2px 6px; color: var(--quiet); }
+    .selo.d { color: var(--danger); border-color: var(--danger); }
+    .selo.w { color: var(--warn); border-color: var(--warn); }
+    .selo.o { color: var(--ok); border-color: var(--ok); }
+    .ficha { padding: 20px; }
+    .ficha h2 { margin: 8px 0 4px; font-size: 32px; }
+    .alert { border: 1px solid var(--border); background: var(--muted); padding: 10px 12px; margin-top: 8px; }
+    label.hitl { display: flex; gap: 8px; align-items: flex-start; min-height: 44px; font-size: 14px; color: var(--quiet); margin-top: 16px; }
+    textarea, input[type=search], input[type=text] {
+      width: 100%; border: 1px solid var(--border); background: var(--muted); color: var(--fg);
+      padding: 8px; font: 14px/1.4 "Source Sans 3", system-ui, sans-serif;
+    }
+    textarea { min-height: 80px; margin-top: 10px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .btn { min-height: 44px; padding: 0 14px; border: 0; background: var(--primary); color: var(--on); font-weight: 600; font-size: 14px; }
+    .btn.ghost { background: var(--surface); color: var(--fg); border: 1px solid var(--border); }
+    .ok { color: var(--ok); font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-size: 12px; color: var(--quiet); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); padding: 8px 6px; }
+    td { border-bottom: 1px solid var(--border); padding: 10px 6px; vertical-align: top; }
+    .kpis { display: grid; gap: 12px; }
+    @media (min-width: 640px) { .kpis { grid-template-columns: repeat(4, 1fr); } }
+    .kpi { border: 1px solid var(--border); background: var(--surface); padding: 16px; }
+    .kpi b { display: block; font-family: Newsreader, Georgia, serif; font-size: 32px; font-weight: 600; }
+    .matrix td { height: 72px; font-family: "IBM Plex Mono", monospace; font-size: 11px; }
+    .c-hi { background: #c23b3226; color: var(--danger); }
+    .c-md { background: #b4530926; color: var(--warn); }
+    .c-lo { background: var(--soft); color: var(--primary); }
+    .c-ok { background: #1b7a4a1a; color: var(--ok); }
+    .normas { display: grid; gap: 8px; }
+    @media (min-width: 640px) { .normas { grid-template-columns: repeat(3, 1fr); } }
+    .norma { border: 1px solid var(--border); background: var(--surface); padding: 12px; }
+    footer { margin-top: 32px; color: var(--subtle); font-size: 12px; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .logo { height: 32px; width: auto; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div style="display:flex;gap:12px;align-items:center">
+          <svg class="logo" width="75" height="40" viewBox="0 0 75 40" fill="none" aria-label="Sebrae"><path fill="#2A4FDA" d="M41.47 16.1 40.8 19.23h1.35c.77 0 1.28-.03 1.52-.1.68-.2 1.11-.69 1.26-1.46.04-.16.06-.31.06-.44 0-.5-.24-.82-.72-.99-.29-.09-.77-.14-1.45-.14h-1.35Zm11.88 5.53h3.54l-.52-5.34h-.06l-2.96 5.34ZM27.9 21.12l-.65 3.05h2.01c1.24 0 1.97-.5 2.18-1.5.04-.15.06-.3.06-.43 0-.75-.57-1.12-1.7-1.12h-1.9Zm1.1-5.14-.62 2.86h1.7c.64 0 1.07-.06 1.3-.16.51-.25.82-.67.94-1.25.11-.5.02-.88-.25-1.14-.22-.2-.59-.3-1.1-.3h-1.97ZM23.22 26.53l2.75-12.82h7.06c.23.02.42.04.58.07.83.15 1.47.46 1.9.93.4.43.6.94.6 1.55 0 .21-.03.43-.07.66-.33 1.48-1.47 2.46-3.42 2.92l-.02.04c1.7.31 2.55 1.11 2.55 2.39 0 .81-.23 1.54-.69 2.2-.45.66-1.07 1.17-1.83 1.53-.77.35-1.98.53-3.64.53h-5.77ZM.13 22.36h3.58c-.05.23-.07.41-.07.56 0 .89.6 1.34 1.81 1.34 1.27 0 2.02-.46 2.23-1.39.02-.11.03-.22.03-.32 0-.42-.3-.7-.89-.86l-2.97-.78c-1.69-.44-2.53-1.29-2.53-2.56 0-.25.03-.51.09-.8.25-1.08.87-1.97 1.87-2.66 1.13-.78 2.6-1.17 4.4-1.17 3.02 0 4.52.93 4.52 2.78 0 .3-.05.68-.14 1.12H8.44c.06-.23.09-.42.09-.58 0-.74-.46-1.12-1.39-1.12-.51 0-.95.12-1.32.37-.36.24-.58.55-.65.92l-.04.29c0 .46.35.78 1.05.96l2.26.59c.99.26 1.68.52 2.06.78.67.43 1 .1.05 1.86 0 .27-.03.56-.1.88-.29 1.31-1.05 2.31-2.3 3-.1.14-2.56.95-4.26.95-2.2 0-3.64-.49-4.34-1.46C.17 24.62 0 24.07 0 23.41c0-.27.04-.62.13-1.05Zm11.75 4.16 2.77-12.78h9.8l-.53 2.45h-6.22l-.58 2.66h5.86l-.54 2.45h-5.86l-.58 2.73h6.36l-.54 2.49H11.88Zm50.56 0 2.77-12.78H75l-.53 2.45h-6.22l-.58 2.66h5.86l-.54 2.45h-5.86l-.58 2.73h6.36l-.54 2.49H62.44ZM27.95 4.36h23.7L52.53 0H28.83l-.88 4.36Zm-1.45 6.76h23.7l.88-4.36H27.38l-.88 4.36ZM21.76 33.53h23.7l.88-4.36H22.64l-.88 4.36Zm-1.45 6.76h23.7l.88-4.35H21.2l-.88 4.35Zm26.61-13.76 7.92-12.72h4.41l2.39 12.72h-4.09l-.34-2.55h-5.23l-1.45 2.55-3.61-.01h-3.92c-.03-.47.04-1.43.2-2.89.05-.51.07-.85.07-1.04 0-.39-.1-.66-.3-.82-.2-.16-.59-.24-1.16-.24h-1.52l-1.09 4.99h-3.63l2.77-12.78h6.04c1.03 0 1.72.02 2.06.07.82.12 1.4.4 1.75.85.33.4.49.9.49 1.5 0 .31-.03.63-.11.97-.24 1.1-.81 1.89-1.72 2.37-.59.32-1.3.54-2.13.66l-.02.07c.94.02 1.58.21 1.92.55.29.28.43.76.43 1.43 0 .22-.02.61-.05 1.15-.12 1.58-.14 2.63-.08 3.15Z"/></svg>
+          <div>
+            <h1>Mesa de integridade</h1>
+            <p>Unidade de Integridade Corporativa · SEBRAE/RO</p>
+          </div>
+        </div>
+        <p>Tenant isolado · PoC Fase 1 · sebracompliance</p>
+      </div>
+      <nav aria-label="Seções">
+        <a href="#contratos" data-tab="contratos">Contratos</a>
+        <a href="#painel" data-tab="painel">Painel</a>
+        <a href="#terceiros" data-tab="terceiros">Terceiros</a>
+        <a href="#canal" data-tab="canal">Canal</a>
+        <a href="#relatorio" data-tab="relatorio">Relatório de segurança</a>
+      </nav>
+      <p class="demo">DEMO. Contratos e hits são amostra da Fase 1 do TR (5 a 20 de um tipo). Não é base de produção do SEBRAE/RO. IA sugere. Humano decide.</p>
+    </header>
+    <main id="app">Carregando amostra…</main>
+    <footer>Hit em base pública não é decisão. Investigado não é condenado. Fonte: Termo de Referência SEBRAE/RO, 18/08/2026. Cor da marca: #2A4FDA.</footer>
+  </div>
+  <script>
+  const TONE = { alto:"d", bloqueado:"d", sancao:"d", critica:"d", alta:"d", medio:"w", media:"w", pep:"w", limpo:"o", baixa:"o", real:"o", parcial:"w", simulado:"w", fora:"" };
+  const LABEL = { real:"real na PoC", parcial:"parcial", simulado:"simulado", fora:"fora da Fase 1" };
+  const HOJE = "2026-09-10";
+  let DATA = { CONTRATOS: [], TERCEIROS: [], NORMAS: [], GRUPOS: [], contagem: {} };
+  let open = 0, hitl = false, nota = "", msg = "", trilhas = {}, denuncias = [];
+
+  const selo = (t, text) => `<span class="selo ${TONE[t]||""}">${esc(text)}</span>`;
+  const esc = (s) => String(s??"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function tab() {
+    const h = (location.hash || "#contratos").slice(1);
+    return ["contratos","painel","terceiros","canal","relatorio"].includes(h) ? h : "contratos";
+  }
+
+  function decidir(tipo) {
+    const c = DATA.CONTRATOS[open];
+    if (!hitl) { msg = "Marque a revisão humana. Saída da IA não cadastra sozinha."; return render(); }
+    if (tipo === "devolver" && !nota.trim()) { msg = "Devolver pede nota."; return render(); }
+    const linha = `${new Date().toISOString().slice(0,16).replace("T"," ")} · ${tipo} · ${c.id} · ${nota.trim() || "sem nota"}`;
+    trilhas[c.id] = [...(trilhas[c.id]||[]), linha];
+    msg = tipo === "aprovar" ? "Decisão humana registrada. Nada foi enviado ao financeiro." : "Devolvido. Área de origem precisa responder.";
+    hitl = false; nota = "";
+    render();
+  }
+
+  function mesa() {
+    const list = DATA.CONTRATOS.map((c,i) => `
+      <button type="button" class="${i===open?"on":""}" data-open="${i}">
+        <span class="id">${esc(c.id)}</span>
+        <span style="display:block;font-size:14px">${esc(c.nome)}</span>
+        <span class="selos">${selo(c.selo,c.label)}${selo("",c.tipo)}</span>
+      </button>`).join("");
+    const c = DATA.CONTRATOS[open] || DATA.CONTRATOS[0];
+    const hist = trilhas[c.id] || [];
+    return `<div class="grid mesa">
+      <aside class="card list">${list}</aside>
+      <article class="card ficha">
+        <div class="selos">${selo(c.selo,c.label)}${selo("",c.tipo)}${selo("",c.norma)}</div>
+        <h2>${esc(c.nome)}</h2>
+        <p style="color:var(--quiet);margin:0 0 12px">${esc(c.id)} · ${esc(c.cnpj)}</p>
+        <p class="id">Score ${c.score} · P${c.prob} × I${c.impacto}${c.controle?" · "+esc(c.controle):""}</p>
+        ${c.fatos.map(f=>`<p style="font-size:14px">${esc(f)}</p>`).join("")}
+        <p class="id">Fonte: ${esc(c.fontes)}</p>
+        ${c.alertas.map(a=>`<div class="alert"><div class="selos">${selo(a.sev,a.sev)}${selo("",a.agente)}</div><strong>${esc(a.t)}</strong><p style="color:var(--quiet);margin:8px 0 0;font-size:14px">${esc(a.d)}</p></div>`).join("")}
+        ${c.tarefa?`<p style="font-size:14px">Tarefa: ${esc(c.tarefa)}${c.prazo?" · prazo "+c.prazo:""}</p>`:""}
+        <label class="hitl"><input type="checkbox" id="hitl" ${hitl?"checked":""}/> Confirmo revisão humana desta saída</label>
+        <textarea id="nota" placeholder="Nota do analista. Obrigatória para devolver.">${esc(nota)}</textarea>
+        <div class="actions">
+          <button class="btn" id="aprovar">Aprovar alerta</button>
+          <button class="btn ghost" id="devolver">Devolver à área</button>
+        </div>
+        ${msg?`<p class="ok">${esc(msg)}</p>`:""}
+        <ol style="color:var(--quiet);font-size:14px">${hist.length?hist.map(h=>`<li>${esc(h)}</li>`).join(""):"<li>Sem decisão ainda.</li>"}</ol>
+      </article>
+    </div>`;
+  }
+
+  function painel() {
+    const cs = DATA.CONTRATOS;
+    const bloqueados = cs.filter(c => c.selo==="bloqueado"||c.selo==="sancao").length;
+    const severos = cs.filter(c => c.alertas.some(a => a.sev==="critica"||a.sev==="alta")).length;
+    const tarefas = cs.filter(c => c.tarefa);
+    const atrasadas = tarefas.filter(c => c.prazo && c.prazo < HOJE).length;
+    const kpis = [
+      ["Contratos na amostra", cs.length, "Fase 1 · um tipo por vez no TR"],
+      ["Hits severos", severos, "Crítica ou alta · ainda sem decisão"],
+      ["Pagamentos barrados", bloqueados, "IA pediu. Humano confirma."],
+      ["Tarefas atrasadas", atrasadas, `De ${tarefas.length} geradas por cláusula`],
+    ];
+    const cells = (p,i) => cs.filter(c => c.prob===p && c.impacto===i);
+    const tom = (p,i) => { const n=p*i; return n>=16?"c-hi":n>=9?"c-md":n>=4?"c-lo":"c-ok"; };
+    let matrix = `<table class="matrix"><thead><tr><th>P \\ I</th>${[1,2,3,4,5].map(i=>`<th>${i}</th>`).join("")}</tr></thead><tbody>`;
+    for (const p of [5,4,3,2,1]) {
+      matrix += `<tr><th>${p}</th>`;
+      for (const i of [1,2,3,4,5]) {
+        matrix += `<td class="${tom(p,i)}">${cells(p,i).map(c=>esc(c.id)).join("<br>")}</td>`;
+      }
+      matrix += `</tr>`;
+    }
+    matrix += `</tbody></table>`;
+    return `
+      <h2>Painel da unidade</h2>
+      <p style="color:var(--quiet)">Item 3.1 (painéis) e 3.3 (matriz, catálogo, tarefas). Amostra DEMO.</p>
+      <div class="kpis">${kpis.map(k=>`<article class="kpi"><p style="color:var(--quiet);font-size:12px;text-transform:uppercase;margin:0">${k[0]}</p><b>${k[1]}</b><p style="color:var(--subtle);font-size:12px;margin:0">${k[2]}</p></article>`).join("")}</div>
+      <h3>Matriz de risco</h3>
+      <p style="color:var(--quiet);font-size:14px">Probabilidade × impacto. ISO 31000.</p>
+      <div style="overflow-x:auto">${matrix}</div>
+      <h3>Tarefas geradas por cláusula</h3>
+      <div style="overflow-x:auto"><table><thead><tr><th>Contrato</th><th>Controle</th><th>Tarefa</th><th>Prazo</th><th>Status</th></tr></thead><tbody>
+      ${tarefas.map(c => { const a=c.prazo&&c.prazo<HOJE; return `<tr><td class="id">${esc(c.id)}</td><td>${esc(c.controle||"")}</td><td>${esc(c.tarefa)}</td><td class="id">${esc(c.prazo||"")}</td><td>${selo(a?"alta":"media", a?"atrasada":"aberta")}</td></tr>`; }).join("")}
+      </tbody></table></div>
+      <h3>Catálogo normativo mínimo</h3>
+      <div class="normas">${DATA.NORMAS.map(n=>`<article class="norma"><p class="id" style="color:var(--primary);margin:0">${esc(n.id)}</p><p style="font-weight:600;margin:4px 0">${esc(n.tema)}</p><p style="color:var(--quiet);font-size:12px;margin:0">${esc(n.uso)}</p></article>`).join("")}</div>`;
+  }
+
+  function terceiros() {
+    return `<h2>Screening de terceiros</h2>
+      <p style="color:var(--quiet)">Checagem mínima do TR: Portal da Transparência, OpenSanctions e bases federais de sanção.</p>
+      <div style="overflow-x:auto"><table><thead><tr><th>Fornecedor</th><th>CNPJ</th><th>Hit</th><th>Base</th><th>Score</th></tr></thead><tbody>
+      ${DATA.TERCEIROS.map(r=>`<tr><td>${esc(r[0])}</td><td class="id">${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td class="id">${esc(r[4])}</td></tr>`).join("")}
+      </tbody></table></div>`;
+  }
+
+  function canal() {
+    return `<h2>Canal de integridade</h2>
+      <p style="color:var(--quiet)">Anonimato opcional. Fluxo: triagem → classificação → investigação → relatório. Lei 12.846.</p>
+      <form id="denuncia">
+        <label class="hitl"><input type="checkbox" id="anon" checked /> Quero anonimato</label>
+        <textarea id="relato" required placeholder="O que aconteceu, quando, quem. Sem adjetivo."></textarea>
+        <div class="actions"><button class="btn" type="submit">Registrar denúncia</button></div>
+        <p class="ok" id="dmsg"></p>
+      </form>
+      <ol id="dlist" style="color:var(--quiet);font-size:14px">${denuncias.map(d=>`<li>${esc(d)}</li>`).join("")}</ol>`;
+  }
+
+  function relatorio() {
+    const c = DATA.contagem;
+    return `<h2>Relatório de segurança — item a item</h2>
+      <p style="color:var(--quiet)">Todos os controles descritos no Termo de Referência SEBRAE/RO (18/08/2026). ${c.total} itens.</p>
+      <ul class="id" style="display:flex;flex-wrap:wrap;gap:12px;padding:0;list-style:none">
+        <li>${c.total} no TR</li><li style="color:var(--ok)">${c.real} reais na PoC</li>
+        <li style="color:var(--warn)">${c.parcial} parciais</li><li style="color:var(--warn)">${c.simulado} simulados</li>
+        <li>${c.fora} fora da Fase 1</li>
+      </ul>
+      ${DATA.GRUPOS.map(g=>`<article style="margin-top:28px"><h3>${esc(g.titulo)}</h3><p class="id">${esc(g.origem)}</p>
+        <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Item</th><th>TR</th><th>PoC</th></tr></thead><tbody>
+        ${g.itens.map(it=>`<tr><td class="id">${String(it.n).padStart(2,"0")}</td>
+          <td><strong>${esc(it.item)}</strong><p style="color:var(--quiet);font-size:13px;margin:4px 0">${esc(it.exigencia)}</p><p class="id">${esc(it.poc)}</p></td>
+          <td class="id">${esc(it.tr)}</td><td>${selo(it.status, LABEL[it.status]||it.status)}</td></tr>`).join("")}
+        </tbody></table></div></article>`).join("")}`;
+  }
+
+  function bind() {
+    document.querySelectorAll("[data-tab]").forEach(a => a.classList.toggle("on", a.dataset.tab===tab()));
+    document.querySelectorAll("[data-open]").forEach(b => b.onclick = () => { open=+b.dataset.open; hitl=false; nota=""; msg=""; render(); });
+    const h = document.getElementById("hitl"); if (h) h.onchange = e => { hitl = e.target.checked; };
+    const n = document.getElementById("nota"); if (n) n.oninput = e => { nota = e.target.value; };
+    const a = document.getElementById("aprovar"); if (a) a.onclick = () => decidir("aprovar");
+    const d = document.getElementById("devolver"); if (d) d.onclick = () => decidir("devolver");
+    const f = document.getElementById("denuncia");
+    if (f) f.onsubmit = e => {
+      e.preventDefault();
+      const texto = document.getElementById("relato").value.trim();
+      if (!texto) return;
+      const id = "DEN-" + String(Date.now()).slice(-6);
+      const anon = document.getElementById("anon").checked;
+      denuncias.unshift(`${id} · triagem · ${anon?"anônima":"identificada"} · “${texto.slice(0,80)}”`);
+      document.getElementById("dmsg").textContent = `Protocolo ${id}. IA não classifica sozinha. Humano na triagem.`;
+      document.getElementById("relato").value = "";
+      document.getElementById("dlist").innerHTML = denuncias.map(x=>`<li>${esc(x)}</li>`).join("");
+    };
+  }
+
+  function render() {
+    const t = tab();
+    document.getElementById("app").innerHTML = t==="painel"?painel():t==="terceiros"?terceiros():t==="canal"?canal():t==="relatorio"?relatorio():mesa();
+    bind();
+  }
+
+  async function boot() {
+    const [c, t, n, s] = await Promise.all([
+      fetch("/api/contratos").then(r=>r.json()),
+      fetch("/api/terceiros").then(r=>r.json()),
+      fetch("/api/normas").then(r=>r.json()),
+      fetch("/api/seguranca").then(r=>r.json()),
+    ]);
+    DATA.CONTRATOS = c.data;
+    DATA.TERCEIROS = t.data;
+    DATA.NORMAS = n.data;
+    DATA.GRUPOS = s.grupos;
+    DATA.contagem = { total:s.total, real:s.real, parcial:s.parcial, simulado:s.simulado, fora:s.fora };
+    const path = location.pathname.replace(/\/+$/,"") || "/";
+    if (!location.hash) {
+      const map = { "/painel":"#painel", "/terceiros":"#terceiros", "/canal":"#canal", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
+      if (map[path]) history.replaceState(null,"", map[path]);
+    }
+    render();
+    addEventListener("hashchange", render);
+  }
+  boot();
+  </script>
+</body>
+</html>
