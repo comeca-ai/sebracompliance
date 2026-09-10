@@ -7,6 +7,10 @@ workers_dev = true
 [observability]
 enabled = true
 
+[vars]
+KIMI_BASE_URL = "https://ws-1pvp9wq6k8pv0n4t.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
+KIMI_MODEL = "kimi-k3"
+
 [[rules]]
 type = "Text"
 globs = ["**/*.html"]

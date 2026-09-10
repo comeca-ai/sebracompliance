@@ -101,6 +101,7 @@
           <a href="#tarefas" data-tab="tarefas">Tarefas</a>
           <a href="#terceiros" data-tab="terceiros">Terceiros</a>
           <a href="#canal" data-tab="canal">Canal</a>
+          <a href="#documentos" data-tab="documentos">Documentos</a>
         </div>
         <p style="margin:12px 0 4px;font-size:12px;color:var(--subtle)">Edital</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
@@ -129,7 +130,7 @@
 
   function tab() {
     const h = (location.hash || "#contratos").slice(1);
-    return ["contratos","painel","controles","tarefas","terceiros","canal","privacidade","juridico","organizacoes","integracoes","edital","relatorio"].includes(h) ? h : "contratos";
+    return ["contratos","painel","controles","tarefas","terceiros","canal","documentos","privacidade","juridico","organizacoes","integracoes","edital","relatorio"].includes(h) ? h : "contratos";
   }
 
   function decidir(tipo) {
@@ -276,6 +277,37 @@
       <p style="color:var(--quiet)">Calendário da amostra. Fechar exige humano. Sem e-mail nesta Fase 1.</p>
       <div class="actions" style="margin-bottom:16px">${chips}</div>
       <div class="grid mesa"><aside class="card list">${list}</aside>${ficha}</div>`;
+  }
+
+
+  function documentos() {
+    const r = window._ocr;
+    const obr = (r && r.obrigacoes) ? r.obrigacoes : [];
+    const rows = obr.map(o => `<tr><td>${esc(o.clausula||"")}</td><td>${esc(o.prazo||"—")}</td><td>${esc(o.norma||"—")}</td></tr>`).join("");
+    const result = r ? `<article class="card ficha" style="margin-top:16px">
+        <div class="selos">${selo("parcial","kimi-k3")}${selo("", r.modelo||"Kimi")}</div>
+        <h2>Leitura da IA</h2>
+        <p class="id">${esc(r.arquivo||"")} · ${esc(r.provedor||"")}</p>
+        ${r.cnpj?`<p style="font-size:14px">CNPJ ${esc(r.cnpj)}</p>`:""}
+        ${r.contrato?`<p style="font-size:14px">Contrato ${esc(r.contrato)}</p>`:""}
+        <p style="white-space:pre-wrap;font-size:14px">${esc(r.texto||"")}</p>
+        <h3>Obrigações extraídas</h3>
+        <table><thead><tr><th>Cláusula</th><th>Prazo</th><th>Norma</th></tr></thead><tbody>${rows||"<tr><td colspan=3>Nenhuma cláusula lida.</td></tr>"}</tbody></table>
+        ${r.ressalvas?`<p class="id">${esc(r.ressalvas)}</p>`:""}
+        <p style="color:var(--quiet);font-size:12px">${esc(r.aviso||"")}</p>
+        <label class="hitl"><input type="checkbox" id="ohitl"/> Confirmo revisão humana desta extração</label>
+        <div class="actions"><button class="btn" id="ogerar">Gerar tarefas (sessão)</button></div>
+        <p class="ok" id="omsg2"></p>
+      </article>` : "";
+    return `<h2>Leitura e OCR de documento</h2>
+      <p style="color:var(--quiet)">Item 3.4. Kimi-k3 no espaço comercial Alibaba (Singapura). PNG, JPG, WEBP, TXT ou PDF. Extração não cadastra sozinha.</p>
+      <article class="card ficha">
+        <label class="id" for="odoc">Arquivo</label>
+        <input type="file" id="odoc" accept="image/png,image/jpeg,image/webp,text/plain,application/pdf" />
+        <div class="actions"><button class="btn" id="oler">Ler com Kimi</button></div>
+        <p class="ok" id="ostatus"></p>
+      </article>
+      ${result}`;
   }
 
   function privacidade() {
@@ -495,6 +527,36 @@
     document.querySelectorAll("[data-esec]").forEach(b => b.onclick = () => { window._esec = b.dataset.esec; render(); });
     document.querySelectorAll("[data-emark]").forEach(b => b.onchange = e => { window._emark = window._emark || {}; window._emark[b.dataset.emark] = e.target.checked; });
 
+
+    const oler = document.getElementById("oler");
+    if (oler) oler.onclick = async () => {
+      const f = document.getElementById("odoc").files[0];
+      const st = document.getElementById("ostatus");
+      if (!f) { st.textContent = "Escolha um arquivo."; return; }
+      if (f.size > 3500000) { st.textContent = "Arquivo acima de 3,5 MB."; return; }
+      st.textContent = "Enviando para Kimi…";
+      const buf = await f.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let bin = "";
+      for (let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+      const data = btoa(bin);
+      try {
+        const res = await fetch("/api/ocr", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ filename:f.name, mime:f.type||"application/octet-stream", data }) });
+        const j = await res.json();
+        if (!res.ok) { st.textContent = j.error || "Falha na leitura."; return; }
+        window._ocr = j; render();
+      } catch (e) {
+        st.textContent = "Rede falhou.";
+      }
+    };
+    const og = document.getElementById("ogerar");
+    if (og) og.onclick = () => {
+      const box = document.getElementById("ohitl");
+      const m = document.getElementById("omsg2");
+      if (!box || !box.checked) { m.textContent = "Marque a revisão humana. Extração da IA não vira tarefa sozinha."; return; }
+      m.textContent = "Tarefas geradas só nesta sessão. Nada foi enviado ao SGF.";
+    };
+
     const f = document.getElementById("denuncia");
     if (f) f.onsubmit = e => {
       e.preventDefault();
@@ -511,7 +573,7 @@
 
   function render() {
     const t = tab();
-    const views = {painel,controles,tarefas,terceiros,canal,privacidade,juridico,organizacoes,integracoes,edital,relatorio};
+    const views = {painel,controles,tarefas,terceiros,canal,documentos,privacidade,juridico,organizacoes,integracoes,edital,relatorio};
     document.getElementById("app").innerHTML = (views[t]||mesa)();
     bind();
   }
@@ -536,7 +598,7 @@
     Object.assign(DATA, cov.data);
     const path = location.pathname.replace(/\/+$/,"") || "/";
     if (!location.hash) {
-      const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/privacidade":"#privacidade", "/juridico":"#juridico", "/organizacoes":"#organizacoes", "/integracoes":"#integracoes", "/edital":"#edital", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
+      const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/privacidade":"#privacidade", "/juridico":"#juridico", "/organizacoes":"#organizacoes", "/integracoes":"#integracoes", "/edital":"#edital", "/documentos":"#documentos", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
       if (map[path]) history.replaceState(null,"", map[path]);
     }
     render();
