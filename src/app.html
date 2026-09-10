@@ -19,18 +19,40 @@
     h1,h2,h3 { font-family: Newsreader, Georgia, serif; font-weight: 600; }
     a { color: var(--primary); }
     button, [role="button"] { cursor: pointer; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 64px; }
-    header { border-bottom: 1px solid var(--border); padding: 14px 0; }
-    .brand { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; }
-    .brand h1 { margin: 0; font-size: 22px; line-height: 1.15; }
-    .brand p { margin: 0; color: var(--quiet); font-size: 12px; }
-    nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    nav a {
-      min-height: 44px; padding: 0 12px; display: inline-flex; align-items: center;
-      border: 1px solid var(--border); background: var(--surface); color: var(--quiet);
-      text-decoration: none; font-size: 14px;
+    .app { min-height: 100dvh; }
+    @media (min-width: 880px) { .app { display: grid; grid-template-columns: 220px 1fr; } }
+    .side {
+      display: none; background: var(--surface); border-right: 1px solid var(--border);
+      padding: 16px 12px; flex-direction: column;
     }
-    nav a.on { background: var(--primary); color: var(--on); border-color: var(--primary); }
+    @media (min-width: 880px) { .side { display: flex; } }
+    .side .brand { display: flex; gap: 10px; align-items: center; min-height: 44px; margin-bottom: 20px; }
+    .side .brand h1 { margin: 0; font-size: 16px; line-height: 1.15; }
+    .side .brand p { margin: 0; color: var(--subtle); font-size: 12px; }
+    .g-label { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--subtle); margin: 16px 8px 6px; }
+    .g-label:first-child { margin-top: 0; }
+    nav a {
+      min-height: 44px; padding: 0 10px; display: flex; align-items: center;
+      border-left: 2px solid transparent; color: var(--quiet); text-decoration: none; font-size: 14px;
+    }
+    nav a.on { border-left-color: var(--primary); background: var(--soft); color: var(--fg); font-weight: 600; }
+    .top { border-bottom: 1px solid var(--border); background: var(--surface); padding: 12px 16px; display: flex; align-items: center; gap: 10px; min-height: 56px; }
+    .top h1 { margin: 0; font-size: 20px; line-height: 1.15; }
+    .top .crumb { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--subtle); margin: 0; }
+    .burger { min-height: 44px; min-width: 44px; border: 1px solid var(--border); background: var(--surface); display: inline-flex; align-items: center; justify-content: center; }
+    @media (min-width: 880px) { .burger { display: none; } .top .logo { display: none; } }
+    .pad { padding: 0 16px 64px; max-width: 920px; }
+    @media (min-width: 880px) { .pad { padding: 0 24px 64px; } }
+    .veil { display: none; position: fixed; inset: 0; background: #12182666; z-index: 40; }
+    .veil.on { display: block; }
+    .drawer {
+      position: fixed; inset: 0 auto 0 0; width: min(20rem, 88vw); background: var(--surface);
+      border-right: 1px solid var(--border); z-index: 50; padding: 16px 12px; overflow: auto;
+      transform: translateX(-100%); transition: transform 250ms cubic-bezier(0.22,1,0.36,1);
+    }
+    .drawer.on { transform: translateX(0); }
+    @media (min-width: 880px) { .drawer, .veil { display: none !important; } }
+    @media (prefers-reduced-motion: reduce) { .drawer { transition: none; } }
     .demo { margin-top: 12px; border: 1px solid var(--border); background: var(--soft); padding: 8px 10px; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--quiet); }
     .grid { margin-top: 16px; display: grid; gap: 16px; }
     @media (min-width: 800px) { .grid.mesa { grid-template-columns: 320px 1fr; min-height: 70vh; } }
@@ -80,46 +102,79 @@
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
+  <div class="app">
+    <aside class="side" aria-label="Módulos do TR">
       <div class="brand">
-        <div style="display:flex;gap:12px;align-items:center">
-          <svg class="logo" width="75" height="40" viewBox="0 0 75 40" fill="none" aria-label="Sebrae"><path fill="#2A4FDA" d="M41.47 16.1 40.8 19.23h1.35c.77 0 1.28-.03 1.52-.1.68-.2 1.11-.69 1.26-1.46.04-.16.06-.31.06-.44 0-.5-.24-.82-.72-.99-.29-.09-.77-.14-1.45-.14h-1.35Zm11.88 5.53h3.54l-.52-5.34h-.06l-2.96 5.34ZM27.9 21.12l-.65 3.05h2.01c1.24 0 1.97-.5 2.18-1.5.04-.15.06-.3.06-.43 0-.75-.57-1.12-1.7-1.12h-1.9Zm1.1-5.14-.62 2.86h1.7c.64 0 1.07-.06 1.3-.16.51-.25.82-.67.94-1.25.11-.5.02-.88-.25-1.14-.22-.2-.59-.3-1.1-.3h-1.97ZM23.22 26.53l2.75-12.82h7.06c.23.02.42.04.58.07.83.15 1.47.46 1.9.93.4.43.6.94.6 1.55 0 .21-.03.43-.07.66-.33 1.48-1.47 2.46-3.42 2.92l-.02.04c1.7.31 2.55 1.11 2.55 2.39 0 .81-.23 1.54-.69 2.2-.45.66-1.07 1.17-1.83 1.53-.77.35-1.98.53-3.64.53h-5.77ZM.13 22.36h3.58c-.05.23-.07.41-.07.56 0 .89.6 1.34 1.81 1.34 1.27 0 2.02-.46 2.23-1.39.02-.11.03-.22.03-.32 0-.42-.3-.7-.89-.86l-2.97-.78c-1.69-.44-2.53-1.29-2.53-2.56 0-.25.03-.51.09-.8.25-1.08.87-1.97 1.87-2.66 1.13-.78 2.6-1.17 4.4-1.17 3.02 0 4.52.93 4.52 2.78 0 .3-.05.68-.14 1.12H8.44c.06-.23.09-.42.09-.58 0-.74-.46-1.12-1.39-1.12-.51 0-.95.12-1.32.37-.36.24-.58.55-.65.92l-.04.29c0 .46.35.78 1.05.96l2.26.59c.99.26 1.68.52 2.06.78.67.43 1 .1.05 1.86 0 .27-.03.56-.1.88-.29 1.31-1.05 2.31-2.3 3-.1.14-2.56.95-4.26.95-2.2 0-3.64-.49-4.34-1.46C.17 24.62 0 24.07 0 23.41c0-.27.04-.62.13-1.05Zm11.75 4.16 2.77-12.78h9.8l-.53 2.45h-6.22l-.58 2.66h5.86l-.54 2.45h-5.86l-.58 2.73h6.36l-.54 2.49H11.88Zm50.56 0 2.77-12.78H75l-.53 2.45h-6.22l-.58 2.66h5.86l-.54 2.45h-5.86l-.58 2.73h6.36l-.54 2.49H62.44ZM27.95 4.36h23.7L52.53 0H28.83l-.88 4.36Zm-1.45 6.76h23.7l.88-4.36H27.38l-.88 4.36ZM21.76 33.53h23.7l.88-4.36H22.64l-.88 4.36Zm-1.45 6.76h23.7l.88-4.35H21.2l-.88 4.35Zm26.61-13.76 7.92-12.72h4.41l2.39 12.72h-4.09l-.34-2.55h-5.23l-1.45 2.55-3.61-.01h-3.92c-.03-.47.04-1.43.2-2.89.05-.51.07-.85.07-1.04 0-.39-.1-.66-.3-.82-.2-.16-.59-.24-1.16-.24h-1.52l-1.09 4.99h-3.63l2.77-12.78h6.04c1.03 0 1.72.02 2.06.07.82.12 1.4.4 1.75.85.33.4.49.9.49 1.5 0 .31-.03.63-.11.97-.24 1.1-.81 1.89-1.72 2.37-.59.32-1.3.54-2.13.66l-.02.07c.94.02 1.58.21 1.92.55.29.28.43.76.43 1.43 0 .22-.02.61-.05 1.15-.12 1.58-.14 2.63-.08 3.15Z"/></svg>
-          <div>
-            <h1>Mesa de integridade</h1>
-            <p>Unidade de Integridade Corporativa · SEBRAE/RO</p>
-          </div>
+        <svg class="logo" width="75" height="40" viewBox="0 0 75 40" fill="none" aria-label="Sebrae"><path fill="#2A4FDA" d="M41.47 16.1 40.8 19.23h1.35c.77 0 1.28-.03 1.52-.1.68-.2 1.11-.69 1.26-1.46.04-.16.06-.31.06-.44 0-.5-.24-.82-.72-.99-.29-.09-.77-.14-1.45-.14h-1.35Zm11.88 5.53h3.54l-.52-5.34h-.06l-2.96 5.34ZM27.9 21.12l-.65 3.05h2.01c1.24 0 1.97-.5 2.18-1.5.04-.15.06-.3.06-.43 0-.75-.57-1.12-1.7-1.12h-1.9Zm1.1-5.14-.62 2.86h1.7c.64 0 1.07-.06 1.3-.16.51-.25.82-.67.94-1.25.11-.5.02-.88-.25-1.14-.22-.2-.59-.3-1.1-.3h-1.97ZM23.22 26.53l2.75-12.82h7.06c.23.02.42.04.58.07.83.15 1.47.46 1.9.93.4.43.6.94.6 1.55 0 .21-.03.43-.07.66-.33 1.48-1.47 2.46-3.42 2.92l-.02.04c1.7.31 2.55 1.11 2.55 2.39 0 .81-.23 1.54-.69 2.2-.45.66-1.07 1.17-1.83 1.53-.77.35-1.98.53-3.64.53h-5.77ZM.13 22.36h3.58c-.05.23-.07.41-.07.56 0 .89.6 1.34 1.81 1.34 1.27 0 2.02-.46 2.23-1.39.02-.11.03-.22.03-.32 0-.42-.3-.7-.89-.86l-2.97-.78c-1.69-.44-2.53-1.29-2.53-2.56 0-.25.03-.51.09-.8.25-1.08.87-1.97 1.87-2.66 1.13-.78 2.6-1.17 4.4-1.17 3.02 0 4.52.93 4.52 2.78 0 .3-.05.68-.14 1.12H8.44c.06-.23.09-.42.09-.58 0-.74-.46-1.12-1.39-1.12-.51 0-.95.12-1.32.37-.36.24-.58.55-.65.92l-.04.29c0 .46.35.78 1.05.96l2.26.59c.99.26 1.68.52 2.06.78.67.43 1 .1.05 1.86 0 .27-.03.56-.1.88-.29 1.31-1.05 2.31-2.3 3-.1.14-2.56.95-4.26.95-2.2 0-3.64-.49-4.34-1.46C.17 24.62 0 24.07 0 23.41c0-.27.04-.62.13-1.05Zm11.75 4.16 2.77-12.78h9.8l-.53 2.45h-6.22l-.58 2.66h5.86l-.54 2.45h-5.86l-.58 2.73h6.36l-.54 2.49H11.88Zm50.56 0 2.77-12.78H75l-.53 2.45h-6.22l-.58 2.66h5.86l-.54 2.45h-5.86l-.58 2.73h6.36l-.54 2.49H62.44ZM27.95 4.36h23.7L52.53 0H28.83l-.88 4.36Zm-1.45 6.76h23.7l.88-4.36H27.38l-.88 4.36ZM21.76 33.53h23.7l.88-4.36H22.64l-.88 4.36Zm-1.45 6.76h23.7l.88-4.35H21.2l-.88 4.35Zm26.61-13.76 7.92-12.72h4.41l2.39 12.72h-4.09l-.34-2.55h-5.23l-1.45 2.55-3.61-.01h-3.92c-.03-.47.04-1.43.2-2.89.05-.51.07-.85.07-1.04 0-.39-.1-.66-.3-.82-.2-.16-.59-.24-1.16-.24h-1.52l-1.09 4.99h-3.63l2.77-12.78h6.04c1.03 0 1.72.02 2.06.07.82.12 1.4.4 1.75.85.33.4.49.9.49 1.5 0 .31-.03.63-.11.97-.24 1.1-.81 1.89-1.72 2.37-.59.32-1.3.54-2.13.66l-.02.07c.94.02 1.58.21 1.92.55.29.28.43.76.43 1.43 0 .22-.02.61-.05 1.15-.12 1.58-.14 2.63-.08 3.15Z"/></svg>
+        <div>
+          <p style="font-family:Newsreader,Georgia,serif;font-size:16px;margin:0;line-height:1.15">Mesa de integridade</p>
+          <p>SEBRAE/RO</p>
         </div>
-        <p>Tenant isolado · PoC Fase 1 · sebracompliance</p>
       </div>
-      <nav aria-label="Seções">
-        <p style="margin:0 0 4px;font-size:12px;color:var(--subtle)">Operação</p>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <a href="#contratos" data-tab="contratos">Contratos</a>
-          <a href="#painel" data-tab="painel">Painel</a>
-          <a href="#controles" data-tab="controles">Controles</a>
-          <a href="#tarefas" data-tab="tarefas">Tarefas</a>
-          <a href="#terceiros" data-tab="terceiros">Terceiros</a>
-          <a href="#canal" data-tab="canal">Canal</a>
-          <a href="#documentos" data-tab="documentos">Documentos</a>
-          <a href="#noticias" data-tab="noticias">Notícias</a>
-          <a href="#pep" data-tab="pep">PEP / QSA</a>
+      <nav id="nav-desk">
+        <p class="g-label">Mesa · TR 3.1</p>
+        <a href="#contratos" data-tab="contratos" data-group="Mesa · TR 3.1" data-title="Contratos">Contratos</a>
+        <a href="#tarefas" data-tab="tarefas" data-group="Mesa · TR 3.1" data-title="Tarefas">Tarefas</a>
+        <a href="#painel" data-tab="painel" data-group="Mesa · TR 3.1" data-title="Painel">Painel</a>
+        <p class="g-label">Due diligence · TR 3.3</p>
+        <a href="#terceiros" data-tab="terceiros" data-group="Due diligence · TR 3.3" data-title="Terceiros">Terceiros</a>
+        <a href="#pep" data-tab="pep" data-group="Due diligence · TR 3.3" data-title="PEP e QSA">PEP e QSA</a>
+        <a href="#noticias" data-tab="noticias" data-group="Due diligence · TR 3.3" data-title="Notícias">Notícias</a>
+        <a href="#documentos" data-tab="documentos" data-group="Due diligence · TR 3.3" data-title="Documentos">Documentos</a>
+        <p class="g-label">Governança · TR 3.3</p>
+        <a href="#controles" data-tab="controles" data-group="Governança · TR 3.3" data-title="Controles">Controles</a>
+        <a href="#canal" data-tab="canal" data-group="Governança · TR 3.3" data-title="Canal">Canal</a>
+        <a href="#privacidade" data-tab="privacidade" data-group="Governança · TR 3.3" data-title="Privacidade">Privacidade</a>
+        <a href="#juridico" data-tab="juridico" data-group="Governança · TR 3.3" data-title="Jurídico">Jurídico</a>
+        <a href="#organizacoes" data-tab="organizacoes" data-group="Governança · TR 3.3" data-title="Organizações">Organizações</a>
+        <p class="g-label">Plataforma · TR 3.4–3.6</p>
+        <a href="#integracoes" data-tab="integracoes" data-group="Plataforma · TR 3.4–3.6" data-title="Integrações">Integrações</a>
+        <a href="#edital" data-tab="edital" data-group="Plataforma · TR 3.4–3.6" data-title="Edital">Edital</a>
+        <a href="#relatorio" data-tab="relatorio" data-group="Plataforma · TR 3.4–3.6" data-title="Segurança">Segurança</a>
+</nav>
+      <p class="id" style="margin-top:auto;padding:16px 8px 0">Tenant isolado · PoC Fase 1</p>
+    </aside>
+    <div>
+      <header class="top">
+        <button class="burger" id="openmenu" type="button" aria-controls="drawer" aria-expanded="false">Menu</button>
+        <svg class="logo" style="height:28px" width="75" height="40" viewBox="0 0 75 40" fill="none" aria-label="Sebrae"><path fill="#2A4FDA" d="M41.47 16.1 40.8 19.23h1.35c.77 0 1.28-.03 1.52-.1.68-.2 1.11-.69 1.26-1.46.04-.16.06-.31.06-.44 0-.5-.24-.82-.72-.99-.29-.09-.77-.14-1.45-.14h-1.35Zm11.88 5.53h3.54l-.52-5.34h-.06l-2.96 5.34ZM27.9 21.12l-.65 3.05h2.01c1.24 0 1.97-.5 2.18-1.5.04-.15.06-.3.06-.43 0-.75-.57-1.12-1.7-1.12h-1.9Zm1.1-5.14-.62 2.86h1.7c.64 0 1.07-.06 1.3-.16.51-.25.82-.67.94-1.25.11-.5.02-.88-.25-1.14-.22-.2-.59-.3-1.1-.3h-1.97ZM23.22 26.53l2.75-12.82h7.06c.23.02.42.04.58.07.83.15 1.47.46 1.9.93.4.43.6.94.6 1.55 0 .21-.03.43-.07.66-.33 1.48-1.47 2.46-3.42 2.92l-.02.04c1.7.31 2.55 1.11 2.55 2.39 0 .81-.23 1.54-.69 2.2-.45.66-1.07 1.17-1.83 1.53-.77.35-1.98.53-3.64.53h-5.77ZM.13 22.36h3.58c-.05.23-.07.41-.07.56 0 .89.6 1.34 1.81 1.34 1.27 0 2.02-.46 2.23-1.39.02-.11.03-.22.03-.32 0-.42-.3-.7-.89-.86l-2.97-.78c-1.69-.44-2.53-1.29-2.53-2.56 0-.25.03-.51.09-.8.25-1.08.87-1.97 1.87-2.66 1.13-.78 2.6-1.17 4.4-1.17 3.02 0 4.52.93 4.52 2.78 0 .3-.05.68-.14 1.12H8.44c.06-.23.09-.42.09-.58 0-.74-.46-1.12-1.39-1.12-.51 0-.95.12-1.32.37-.36.24-.58.55-.65.92l-.04.29c0 .46.35.78 1.05.96l2.26.59c.99.26 1.68.52 2.06.78.67.43 1 .1.05 1.86 0 .27-.03.56-.1.88-.29 1.31-1.05 2.31-2.3 3-.1.14-2.56.95-4.26.95-2.2 0-3.64-.49-4.34-1.46C.17 24.62 0 24.07 0 23.41c0-.27.04-.62.13-1.05Zm11.75 4.16 2.77-12.78h9.8l-.53 2.45h-6.22l-.58 2.66h5.86l-.54 2.45h-5.86l-.58 2.73h6.36l-.54 2.49H11.88Zm50.56 0 2.77-12.78H75l-.53 2.45h-6.22l-.58 2.66h5.86l-.54 2.45h-5.86l-.58 2.73h6.36l-.54 2.49H62.44ZM27.95 4.36h23.7L52.53 0H28.83l-.88 4.36Zm-1.45 6.76h23.7l.88-4.36H27.38l-.88 4.36ZM21.76 33.53h23.7l.88-4.36H22.64l-.88 4.36Zm-1.45 6.76h23.7l.88-4.35H21.2l-.88 4.35Zm26.61-13.76 7.92-12.72h4.41l2.39 12.72h-4.09l-.34-2.55h-5.23l-1.45 2.55-3.61-.01h-3.92c-.03-.47.04-1.43.2-2.89.05-.51.07-.85.07-1.04 0-.39-.1-.66-.3-.82-.2-.16-.59-.24-1.16-.24h-1.52l-1.09 4.99h-3.63l2.77-12.78h6.04c1.03 0 1.72.02 2.06.07.82.12 1.4.4 1.75.85.33.4.49.9.49 1.5 0 .31-.03.63-.11.97-.24 1.1-.81 1.89-1.72 2.37-.59.32-1.3.54-2.13.66l-.02.07c.94.02 1.58.21 1.92.55.29.28.43.76.43 1.43 0 .22-.02.61-.05 1.15-.12 1.58-.14 2.63-.08 3.15Z"/></svg>
+        <div>
+          <p class="crumb" id="crumb">Mesa · TR 3.1</p>
+          <h1 id="pagetitle">Contratos</h1>
         </div>
-        <p style="margin:12px 0 4px;font-size:12px;color:var(--subtle)">Edital</p>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <a href="#privacidade" data-tab="privacidade">Privacidade</a>
-          <a href="#juridico" data-tab="juridico">Jurídico</a>
-          <a href="#organizacoes" data-tab="organizacoes">Organizações</a>
-          <a href="#integracoes" data-tab="integracoes">Integrações</a>
-          <a href="#edital" data-tab="edital">Edital</a>
-          <a href="#relatorio" data-tab="relatorio">Relatório de segurança</a>
-        </div>
-      </nav>
-      <p class="demo">DEMO. Contratos e hits são amostra da Fase 1 do TR (5 a 20 de um tipo). Não é base de produção do SEBRAE/RO. IA sugere. Humano decide.</p>
-    </header>
-    <main id="app">Carregando amostra…</main>
-    <footer>Hit em base pública não é decisão. Investigado não é condenado. Fonte: Termo de Referência SEBRAE/RO, 18/08/2026. Cor da marca: #2A4FDA.</footer>
+      </header>
+      <div class="pad">
+        <p class="demo">DEMO. Contratos e hits são amostra da Fase 1 do TR (5 a 20 de um tipo). Não é base de produção do SEBRAE/RO. IA sugere. Humano decide.</p>
+        <main id="app">Carregando amostra…</main>
+        <footer>Hit em base pública não é decisão. Investigado não é condenado. Fonte: Termo de Referência SEBRAE/RO, 18/08/2026.</footer>
+      </div>
+    </div>
   </div>
+  <div class="veil" id="veil"></div>
+  <aside class="drawer" id="drawer">
+    <p style="font-family:Newsreader,Georgia,serif;font-size:20px;margin:0 0 12px">Módulos</p>
+    <nav id="nav-mob">
+        <p class="g-label">Mesa · TR 3.1</p>
+        <a href="#contratos" data-tab="contratos" data-group="Mesa · TR 3.1" data-title="Contratos">Contratos</a>
+        <a href="#tarefas" data-tab="tarefas" data-group="Mesa · TR 3.1" data-title="Tarefas">Tarefas</a>
+        <a href="#painel" data-tab="painel" data-group="Mesa · TR 3.1" data-title="Painel">Painel</a>
+        <p class="g-label">Due diligence · TR 3.3</p>
+        <a href="#terceiros" data-tab="terceiros" data-group="Due diligence · TR 3.3" data-title="Terceiros">Terceiros</a>
+        <a href="#pep" data-tab="pep" data-group="Due diligence · TR 3.3" data-title="PEP e QSA">PEP e QSA</a>
+        <a href="#noticias" data-tab="noticias" data-group="Due diligence · TR 3.3" data-title="Notícias">Notícias</a>
+        <a href="#documentos" data-tab="documentos" data-group="Due diligence · TR 3.3" data-title="Documentos">Documentos</a>
+        <p class="g-label">Governança · TR 3.3</p>
+        <a href="#controles" data-tab="controles" data-group="Governança · TR 3.3" data-title="Controles">Controles</a>
+        <a href="#canal" data-tab="canal" data-group="Governança · TR 3.3" data-title="Canal">Canal</a>
+        <a href="#privacidade" data-tab="privacidade" data-group="Governança · TR 3.3" data-title="Privacidade">Privacidade</a>
+        <a href="#juridico" data-tab="juridico" data-group="Governança · TR 3.3" data-title="Jurídico">Jurídico</a>
+        <a href="#organizacoes" data-tab="organizacoes" data-group="Governança · TR 3.3" data-title="Organizações">Organizações</a>
+        <p class="g-label">Plataforma · TR 3.4–3.6</p>
+        <a href="#integracoes" data-tab="integracoes" data-group="Plataforma · TR 3.4–3.6" data-title="Integrações">Integrações</a>
+        <a href="#edital" data-tab="edital" data-group="Plataforma · TR 3.4–3.6" data-title="Edital">Edital</a>
+        <a href="#relatorio" data-tab="relatorio" data-group="Plataforma · TR 3.4–3.6" data-title="Segurança">Segurança</a>
+</nav>
+  </aside>
   <script>
   const TONE = { alto:"d", bloqueado:"d", sancao:"d", critica:"d", alta:"d", medio:"w", media:"w", pep:"w", limpo:"o", baixa:"o", real:"o", parcial:"w", simulado:"w", fora:"" };
   const LABEL = { real:"real na PoC", parcial:"parcial", simulado:"simulado", fora:"fora da Fase 1" };
@@ -710,6 +765,18 @@
 
   function render() {
     const t = tab();
+    document.querySelectorAll("nav a[data-tab]").forEach(a => a.classList.toggle("on", a.dataset.tab===t));
+    const cur = document.querySelector("nav a[data-tab='"+t+"']");
+    if (cur) {
+      const c = document.getElementById("crumb");
+      const p = document.getElementById("pagetitle");
+      if (c) c.textContent = cur.dataset.group || "";
+      if (p) p.textContent = cur.dataset.title || t;
+      document.title = (cur.dataset.title || t) + " · Mesa de Integridade";
+    }
+    document.getElementById("drawer").classList.remove("on");
+    document.getElementById("veil").classList.remove("on");
+    document.getElementById("openmenu").setAttribute("aria-expanded","false");
     const views = {painel,controles,tarefas,terceiros,canal,documentos,noticias,pep,privacidade,juridico,organizacoes,integracoes,edital,relatorio};
     document.getElementById("app").innerHTML = (views[t]||mesa)();
     bind();
@@ -740,6 +807,16 @@
     }
     render();
     addEventListener("hashchange", render);
+    document.getElementById("openmenu").onclick = () => {
+      document.getElementById("drawer").classList.add("on");
+      document.getElementById("veil").classList.add("on");
+      document.getElementById("openmenu").setAttribute("aria-expanded","true");
+    };
+    document.getElementById("veil").onclick = () => {
+      document.getElementById("drawer").classList.remove("on");
+      document.getElementById("veil").classList.remove("on");
+      document.getElementById("openmenu").setAttribute("aria-expanded","false");
+    };
   }
   boot();
   </script>
