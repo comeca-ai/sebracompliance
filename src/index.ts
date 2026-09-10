@@ -1,6 +1,7 @@
 import page from "./app.html";
 import data from "./data.json";
 import { lerDocumento, type OcrEnv } from "./ocr";
+import { buscarNoticias } from "./noticias";
 
 type Env = OcrEnv & { ASSETS?: Fetcher };
 
@@ -45,6 +46,7 @@ const OPENAPI = {
     "/api/tarefas": { get: { summary: "Tarefas geradas por cláusula" } },
     "/api/cobertura": { get: { summary: "Módulos restantes do TR e dossiê do edital" } },
     "/api/ocr": { post: { summary: "Leitura e OCR de documento via Kimi" } },
+    "/api/noticias": { get: { summary: "Busca Google Notícias no Worker" } },
   },
 };
 
@@ -65,10 +67,21 @@ export default {
         tenant: "SEBRAE/RO",
         demo: true,
         kimi: Boolean(env.KIMI_API_KEY),
+        noticias: "google-news-rss",
       });
     }
 
     if (path === "/openapi.json") return json(OPENAPI);
+
+    if (path === "/api/noticias" && request.method === "GET") {
+      const q = url.searchParams.get("q") || "";
+      try {
+        const data = await buscarNoticias(q);
+        return json(data);
+      } catch (e) {
+        return json({ error: e instanceof Error ? e.message : "Falha no Google News" }, 502);
+      }
+    }
 
     if (path === "/api/ocr" && request.method === "POST") {
       const body = (await request.json().catch(() => null)) as
@@ -137,6 +150,7 @@ export default {
       path === "/juridico" ||
       path === "/privacidade" ||
       path === "/documentos" ||
+      path === "/noticias" ||
       path === "/relatorio" ||
       path === "/seguranca"
     ) {

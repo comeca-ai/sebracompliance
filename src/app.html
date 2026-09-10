@@ -102,6 +102,7 @@
           <a href="#terceiros" data-tab="terceiros">Terceiros</a>
           <a href="#canal" data-tab="canal">Canal</a>
           <a href="#documentos" data-tab="documentos">Documentos</a>
+          <a href="#noticias" data-tab="noticias">Notícias</a>
         </div>
         <p style="margin:12px 0 4px;font-size:12px;color:var(--subtle)">Edital</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
@@ -129,8 +130,8 @@
   const esc = (s) => String(s??"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   function tab() {
-    const h = (location.hash || "#contratos").slice(1);
-    return ["contratos","painel","controles","tarefas","terceiros","canal","documentos","privacidade","juridico","organizacoes","integracoes","edital","relatorio"].includes(h) ? h : "contratos";
+    const h = (location.hash || "#contratos").slice(1).split("?")[0];
+    return ["contratos","painel","controles","tarefas","terceiros","canal","documentos","noticias","privacidade","juridico","organizacoes","integracoes","edital","relatorio"].includes(h) ? h : "contratos";
   }
 
   function decidir(tipo) {
@@ -279,6 +280,31 @@
       <div class="grid mesa"><aside class="card list">${list}</aside>${ficha}</div>`;
   }
 
+
+
+  function noticias() {
+    const r = window._news;
+    const q = window._nq || "";
+    const chips = (DATA.TERCEIROS||[]).map(t => {
+      const nome = Array.isArray(t)? t[0] : t;
+      return `<button class="btn ghost" data-nq="${esc(nome)}">${esc(nome)}</button>`;
+    }).join("");
+    const rows = (r && r.itens ? r.itens : []).map(n => `<tr>
+      <td>${n.adversa?selo("alta","adversa"):selo("limpo","clipping")}</td>
+      <td><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.titulo)}</a></td>
+      <td>${esc(n.fonte)}</td>
+      <td class="id">${esc(n.data)}</td>
+    </tr>`).join("");
+    return `<h2>Notícias adversas</h2>
+      <p style="color:var(--quiet)">Google Notícias via RSS, só no Worker. Clipping ≠ sanção. Humano classifica.</p>
+      <div class="actions">
+        <input id="nq" type="search" value="${esc(q)}" placeholder="Fornecedor, CNPJ ou termo" style="max-width:360px"/>
+        <button class="btn" id="nbuscar">Buscar no Google News</button>
+      </div>
+      <div class="actions" style="margin-top:8px">${chips}</div>
+      <p class="ok" id="nstatus">${r?esc(r.fonte)+" · "+r.total+" itens · "+r.adversas+" com termo adverso"):"Busca feita no Cloudflare, não no navegador."}</p>
+      ${r?`<table><thead><tr><th>Selo</th><th>Título</th><th>Fonte</th><th>Data</th></tr></thead><tbody>${rows||"<tr><td colspan=4>Nada encontrado.</td></tr>"}</tbody></table>`:""}`;
+  }
 
   function documentos() {
     const r = window._ocr;
@@ -528,6 +554,30 @@
     document.querySelectorAll("[data-emark]").forEach(b => b.onchange = e => { window._emark = window._emark || {}; window._emark[b.dataset.emark] = e.target.checked; });
 
 
+
+    const nbuscar = document.getElementById("nbuscar");
+    async function runNews(q) {
+      if (window._nloading) return;
+      window._nloading = true;
+      window._nq = q;
+      const st = document.getElementById("nstatus");
+      if (st) st.textContent = "Buscando no Worker…";
+      try {
+        const res = await fetch("/api/noticias?q="+encodeURIComponent(q));
+        window._news = await res.json();
+      } catch { window._news = { itens: [], fonte: "falha", total: 0, adversas: 0 }; }
+      window._nloading = false;
+      render();
+    }
+    if (nbuscar) nbuscar.onclick = () => runNews(document.getElementById("nq").value.trim());
+    const nq = document.getElementById("nq");
+    if (nq) nq.onkeydown = e => { if (e.key==="Enter") { e.preventDefault(); runNews(nq.value.trim()); } };
+    document.querySelectorAll("[data-nq]").forEach(b => b.onclick = () => runNews(b.dataset.nq));
+    if (tab()==="noticias" && !window._news) {
+      const params = new URLSearchParams((location.hash.split("?")[1]||""));
+      runNews(params.get("q") || window._nq || "SEBRAE Rondônia");
+    }
+
     const oler = document.getElementById("oler");
     if (oler) oler.onclick = async () => {
       const f = document.getElementById("odoc").files[0];
@@ -573,7 +623,7 @@
 
   function render() {
     const t = tab();
-    const views = {painel,controles,tarefas,terceiros,canal,documentos,privacidade,juridico,organizacoes,integracoes,edital,relatorio};
+    const views = {painel,controles,tarefas,terceiros,canal,documentos,noticias,privacidade,juridico,organizacoes,integracoes,edital,relatorio};
     document.getElementById("app").innerHTML = (views[t]||mesa)();
     bind();
   }
@@ -598,7 +648,7 @@
     Object.assign(DATA, cov.data);
     const path = location.pathname.replace(/\/+$/,"") || "/";
     if (!location.hash) {
-      const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/privacidade":"#privacidade", "/juridico":"#juridico", "/organizacoes":"#organizacoes", "/integracoes":"#integracoes", "/edital":"#edital", "/documentos":"#documentos", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
+      const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/privacidade":"#privacidade", "/juridico":"#juridico", "/organizacoes":"#organizacoes", "/integracoes":"#integracoes", "/edital":"#edital", "/documentos":"#documentos", "/noticias":"#noticias", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
       if (map[path]) history.replaceState(null,"", map[path]);
     }
     render();
