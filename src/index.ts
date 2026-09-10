@@ -2,6 +2,7 @@ import page from "./app.html";
 import data from "./data.json";
 import { lerDocumento, type OcrEnv } from "./ocr";
 import { buscarNoticias } from "./noticias";
+import { fluxoPep } from "./pep";
 
 type Env = OcrEnv & { ASSETS?: Fetcher };
 
@@ -47,6 +48,7 @@ const OPENAPI = {
     "/api/cobertura": { get: { summary: "Módulos restantes do TR e dossiê do edital" } },
     "/api/ocr": { post: { summary: "Leitura e OCR de documento via Kimi" } },
     "/api/noticias": { get: { summary: "Busca Google Notícias no Worker" } },
+    "/api/pep": { get: { summary: "QSA e triagem PEP de sócios" } },
   },
 };
 
@@ -80,6 +82,16 @@ export default {
         return json(data);
       } catch (e) {
         return json({ error: e instanceof Error ? e.message : "Falha no Google News" }, 502);
+      }
+    }
+
+    if (path === "/api/pep" && request.method === "GET") {
+      const cnpj = url.searchParams.get("cnpj") || "";
+      try {
+        const data = await fluxoPep(cnpj);
+        return json(data);
+      } catch (e) {
+        return json({ error: e instanceof Error ? e.message : "Falha na triagem PEP" }, 400);
       }
     }
 
@@ -151,6 +163,7 @@ export default {
       path === "/privacidade" ||
       path === "/documentos" ||
       path === "/noticias" ||
+      path === "/pep" ||
       path === "/relatorio" ||
       path === "/seguranca"
     ) {

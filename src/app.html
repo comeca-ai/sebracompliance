@@ -103,6 +103,7 @@
           <a href="#canal" data-tab="canal">Canal</a>
           <a href="#documentos" data-tab="documentos">Documentos</a>
           <a href="#noticias" data-tab="noticias">Notícias</a>
+          <a href="#pep" data-tab="pep">PEP / QSA</a>
         </div>
         <p style="margin:12px 0 4px;font-size:12px;color:var(--subtle)">Edital</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
@@ -131,7 +132,7 @@
 
   function tab() {
     const h = (location.hash || "#contratos").slice(1).split("?")[0];
-    return ["contratos","painel","controles","tarefas","terceiros","canal","documentos","noticias","privacidade","juridico","organizacoes","integracoes","edital","relatorio"].includes(h) ? h : "contratos";
+    return ["contratos","painel","controles","tarefas","terceiros","canal","documentos","noticias","pep","privacidade","juridico","organizacoes","integracoes","edital","relatorio"].includes(h) ? h : "contratos";
   }
 
   function decidir(tipo) {
@@ -281,6 +282,62 @@
   }
 
 
+
+
+  function pep() {
+    const r = window._pep;
+    const cnpj = window._pcnpj || "12.345.678/0001-90";
+    const chips = (DATA.TERCEIROS||[]).map(t => {
+      const nome = Array.isArray(t)? t[0]:t;
+      const c = Array.isArray(t)? t[1]:"";
+      return `<button class="btn ghost" data-pcnpj="${esc(c)}">${esc(nome)}</button>`;
+    }).join("");
+    const steps = (r && r.etapa ? r.etapa : ["Identificar","QSA","PEP / mídia","HITL","Registro"]).map((s,i)=>`<span class="selo ${i>=3?"":"o"}">${i+1} ${esc(s)}</span>`).join(" ");
+    if (!r) {
+      return `<h2>Fluxo PEP e QSA</h2>
+        <p style="color:var(--quiet)">Sócios da empresa. Hit PEP não é condenação. Consulta QSA no Worker (BrasilAPI) ou amostra DEMO.</p>
+        <p>${steps}</p>
+        <div class="actions">
+          <input id="pcnpj" value="${esc(cnpj)}" placeholder="CNPJ" style="max-width:240px"/>
+          <button class="btn" id="pbuscar">Rodar fluxo</button>
+        </div>
+        <div class="actions" style="margin-top:8px">${chips}</div>
+        <p class="ok" id="pstatus">Nada cadastra sozinho. Humano decide no fim.</p>`;
+    }
+    const socios = (r.socios||[]).map(s=>`<tr>
+      <td>${esc(s.nome)}</td><td>${esc(s.qualificacao)}</td><td class="id">${esc(s.entrada||"—")}</td>
+      <td>${s.pep?selo("alta","PEP"):selo("limpo","sem hit")}</td>
+      <td>${esc(s.fonte)}</td>
+    </tr>`).join("");
+    const news = (r.noticias||[]).map(n=>`<tr><td>${n.adversa?selo("alta","adversa"):selo("limpo","clipping")}</td>
+      <td><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.titulo)}</a></td>
+      <td>${esc(n.fonte)}</td></tr>`).join("");
+    return `<h2>Fluxo PEP e QSA</h2>
+      <p style="color:var(--quiet)">${esc(r.aviso)}</p>
+      <p>${steps}</p>
+      <div class="actions">
+        <input id="pcnpj" value="${esc(cnpj)}" placeholder="CNPJ" style="max-width:240px"/>
+        <button class="btn" id="pbuscar">Rodar fluxo</button>
+      </div>
+      <div class="actions" style="margin-top:8px">${chips}</div>
+      <article class="card ficha" style="margin-top:16px">
+        <div class="selos">${selo(r.recomendacao==="limpo"?"limpo":"alta", r.recomendacao)}${selo("", "score "+r.score)}${r.demo?selo("parcial","DEMO"):selo("limpo","QSA público")}</div>
+        <h2>${esc(r.razao)}</h2>
+        <p class="id">${esc(r.cnpj)} · ${esc(r.situacao)} · ${esc(r.origem_qsa)}</p>
+        <p style="font-size:14px">${r.pep_count} sócio(s) com hit PEP. Recomendação da IA: ${esc(r.recomendacao)}.</p>
+        <h3>Quadro societário</h3>
+        <table><thead><tr><th>Sócio</th><th>Qualificação</th><th>Entrada</th><th>PEP</th><th>Fonte</th></tr></thead><tbody>${socios||"<tr><td colspan=5>QSA vazio.</td></tr>"}</tbody></table>
+        <h3>Mídia dos sócios</h3>
+        <table><thead><tr><th>Selo</th><th>Título</th><th>Fonte</th></tr></thead><tbody>${news||"<tr><td colspan=3>Sem clipping.</td></tr>"}</tbody></table>
+        <label class="hitl"><input type="checkbox" id="pephitl"/> Confirmo revisão humana desta triagem PEP</label>
+        <div class="actions">
+          <button class="btn" id="plimpar">Marcar limpo</button>
+          <button class="btn ghost" id="psinal">Sinalizar</button>
+          <button class="btn ghost" id="pbloq">Bloquear pagamento</button>
+        </div>
+        <p class="ok" id="pmsg"></p>
+      </article>`;
+  }
 
   function noticias() {
     const r = window._news;
@@ -555,6 +612,36 @@
 
 
 
+
+    async function runPep(cnpj) {
+      if (window._ploading) return;
+      window._ploading = true;
+      window._pcnpj = cnpj;
+      const st = document.getElementById("pstatus");
+      if (st) st.textContent = "Consultando QSA e PEP no Worker…";
+      try {
+        const res = await fetch("/api/pep?cnpj="+encodeURIComponent(cnpj));
+        window._pep = await res.json();
+        if (window._pep.error) { if (st) st.textContent = window._pep.error; window._pep = null; }
+      } catch { if (st) st.textContent = "Falha na triagem."; }
+      window._ploading = false;
+      render();
+    }
+    const pb = document.getElementById("pbuscar");
+    if (pb) pb.onclick = () => runPep(document.getElementById("pcnpj").value.trim());
+    const pi = document.getElementById("pcnpj");
+    if (pi) pi.onkeydown = e => { if (e.key==="Enter") { e.preventDefault(); runPep(pi.value.trim()); } };
+    document.querySelectorAll("[data-pcnpj]").forEach(b => b.onclick = () => runPep(b.dataset.pcnpj));
+    function pepDecide(tipo) {
+      const box = document.getElementById("pephitl");
+      const m = document.getElementById("pmsg");
+      if (!box || !box.checked) { if (m) m.textContent = "Marque a revisão humana. Hit PEP não cadastra sozinho."; return; }
+      if (m) m.textContent = "Decisão "+tipo+" registrada nesta sessão. Nada foi enviado ao SGF.";
+    }
+    const pl = document.getElementById("plimpar"); if (pl) pl.onclick = () => pepDecide("limpo");
+    const ps = document.getElementById("psinal"); if (ps) ps.onclick = () => pepDecide("sinalizado");
+    const pk = document.getElementById("pbloq"); if (pk) pk.onclick = () => pepDecide("bloqueado");
+
     const nbuscar = document.getElementById("nbuscar");
     async function runNews(q) {
       if (window._nloading) return;
@@ -623,7 +710,7 @@
 
   function render() {
     const t = tab();
-    const views = {painel,controles,tarefas,terceiros,canal,documentos,noticias,privacidade,juridico,organizacoes,integracoes,edital,relatorio};
+    const views = {painel,controles,tarefas,terceiros,canal,documentos,noticias,pep,privacidade,juridico,organizacoes,integracoes,edital,relatorio};
     document.getElementById("app").innerHTML = (views[t]||mesa)();
     bind();
   }
@@ -648,7 +735,7 @@
     Object.assign(DATA, cov.data);
     const path = location.pathname.replace(/\/+$/,"") || "/";
     if (!location.hash) {
-      const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/privacidade":"#privacidade", "/juridico":"#juridico", "/organizacoes":"#organizacoes", "/integracoes":"#integracoes", "/edital":"#edital", "/documentos":"#documentos", "/noticias":"#noticias", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
+      const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/privacidade":"#privacidade", "/juridico":"#juridico", "/organizacoes":"#organizacoes", "/integracoes":"#integracoes", "/edital":"#edital", "/documentos":"#documentos", "/noticias":"#noticias", "/pep":"#pep", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
       if (map[path]) history.replaceState(null,"", map[path]);
     }
     render();
