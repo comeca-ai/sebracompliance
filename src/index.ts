@@ -38,6 +38,8 @@ const OPENAPI = {
     "/api/terceiros": { get: { summary: "Screening mínimo" } },
     "/api/normas": { get: { summary: "Catálogo normativo" } },
     "/api/seguranca": { get: { summary: "Itens de segurança do TR" } },
+    "/api/controles": { get: { summary: "Catálogo de controles internos" } },
+    "/api/tarefas": { get: { summary: "Tarefas geradas por cláusula" } },
   },
 };
 
@@ -71,6 +73,12 @@ export default {
     if (path === "/api/normas") {
       return json({ demo: true, data: data.NORMAS });
     }
+    if (path === "/api/controles") {
+      return json({ demo: true, data: (data as { CONTROLES?: unknown[] }).CONTROLES ?? [] });
+    }
+    if (path === "/api/tarefas") {
+      return json({ demo: true, data: (data as { TAREFAS?: unknown[] }).TAREFAS ?? [] });
+    }
     if (path === "/api/seguranca") {
       return json({ demo: true, fonte: "Termo de Referência SEBRAE/RO, 18/08/2026", ...data.contagem, grupos: data.GRUPOS });
     }
@@ -81,6 +89,8 @@ export default {
       path === "/painel" ||
       path === "/terceiros" ||
       path === "/canal" ||
+      path === "/controles" ||
+      path === "/tarefas" ||
       path === "/relatorio" ||
       path === "/seguranca"
     ) {

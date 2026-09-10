@@ -3,6 +3,8 @@ declare module "*.json" {
     CONTRATOS: unknown[];
     TERCEIROS: unknown[];
     NORMAS: unknown[];
+    CONTROLES: unknown[];
+    TAREFAS: unknown[];
     GRUPOS: unknown[];
     contagem: { total: number; real: number; parcial: number; simulado: number; fora: number };
   };
