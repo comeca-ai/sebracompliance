@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600" fill="none">
+  <rect width="1200" height="1600" fill="#0B1F66"/>
+  <!-- fitas diagonais da identidade Sebrae -->
+  <g opacity="0.9">
+    <path d="M-200 1280 C 300 1100, 700 1150, 1400 900 L 1400 1010 C 720 1260, 300 1210, -200 1400 Z" fill="#2A4FDA"/>
+    <path d="M-200 1130 C 320 960, 720 1010, 1400 760 L 1400 830 C 740 1070, 330 1020, -200 1210 Z" fill="#4C6BEF" opacity="0.85"/>
+    <path d="M-200 1000 C 340 840, 740 890, 1400 640 L 1400 690 C 760 930, 350 880, -200 1050 Z" fill="#7A8FF5" opacity="0.7"/>
+    <path d="M-200 1420 C 280 1260, 680 1300, 1400 1060 L 1400 1180 C 700 1400, 280 1360, -200 1540 Z" fill="#16307F"/>
+    <path d="M-200 880 C 360 730, 760 780, 1400 540 L 1400 575 C 780 810, 370 765, -200 925 Z" fill="#B9C3FA" opacity="0.45"/>
+  </g>
+  <!-- fitas superiores -->
+  <g opacity="0.55">
+    <path d="M-200 320 C 400 180, 800 220, 1400 20 L 1400 90 C 820 280, 420 240, -200 390 Z" fill="#2A4FDA"/>
+    <path d="M-200 210 C 420 80, 820 120, 1400 -60 L 1400 -10 C 840 170, 440 130, -200 270 Z" fill="#4C6BEF"/>
+  </g>
+  <!-- grid sutil -->
+  <g stroke="#FFFFFF" stroke-opacity="0.05">
+    <path d="M0 400 H1200 M0 800 H1200 M0 1200 H1200 M300 0 V1600 M600 0 V1600 M900 0 V1600"/>
+  </g>
+</svg>

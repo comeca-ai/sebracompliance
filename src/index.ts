@@ -1,4 +1,7 @@
 import page from "./app.html";
+import loginPage from "./login.html";
+import ribbons from "./login-ribbons.svg";
+import logo from "./logo-sebrae.svg";
 import data from "./data.json";
 import { lerDocumento, type OcrEnv } from "./ocr";
 import { buscarNoticias } from "./noticias";
@@ -100,6 +103,27 @@ export default {
     }
 
     if (path === "/openapi.json") return json(OPENAPI);
+
+    if (path === "/login-ribbons.svg") {
+      return new Response(ribbons, {
+        headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "public, max-age=86400" },
+      });
+    }
+    if (path === "/logo-sebrae.svg") {
+      return new Response(logo, {
+        headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "public, max-age=86400" },
+      });
+    }
+    if (path === "/login") {
+      return new Response(loginPage, {
+        status: 200,
+        headers: {
+          ...htmlHeaders,
+          "content-security-policy":
+            "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        },
+      });
+    }
 
     if (path === "/api/noticias" && request.method === "GET") {
       const q = url.searchParams.get("q") || "";

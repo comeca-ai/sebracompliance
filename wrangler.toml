@@ -20,3 +20,9 @@ id = "db53caf38f70417d922c4fec02fedd1e"
 type = "Text"
 globs = ["**/*.html"]
 fallthrough = true
+
+[[rules]]
+type = "Text"
+globs = ["**/*.svg"]
+fallthrough = true
+
