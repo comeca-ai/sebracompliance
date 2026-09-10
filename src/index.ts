@@ -40,6 +40,7 @@ const OPENAPI = {
     "/api/seguranca": { get: { summary: "Itens de segurança do TR" } },
     "/api/controles": { get: { summary: "Catálogo de controles internos" } },
     "/api/tarefas": { get: { summary: "Tarefas geradas por cláusula" } },
+    "/api/cobertura": { get: { summary: "Módulos restantes do TR e dossiê do edital" } },
   },
 };
 
@@ -79,6 +80,23 @@ export default {
     if (path === "/api/tarefas") {
       return json({ demo: true, data: (data as { TAREFAS?: unknown[] }).TAREFAS ?? [] });
     }
+    if (path === "/api/cobertura") {
+      const d = data as Record<string, unknown>;
+      return json({
+        demo: true,
+        data: {
+          TITULARES: d.TITULARES,
+          ROPA: d.ROPA,
+          PROCESSOS: d.PROCESSOS,
+          MEMBROS: d.MEMBROS,
+          COLABORADORES: d.COLABORADORES,
+          EVENTOS: d.EVENTOS,
+          SISTEMAS: d.SISTEMAS,
+          COBERTURA: d.COBERTURA,
+          EDITAL: d.EDITAL,
+        },
+      });
+    }
     if (path === "/api/seguranca") {
       return json({ demo: true, fonte: "Termo de Referência SEBRAE/RO, 18/08/2026", ...data.contagem, grupos: data.GRUPOS });
     }
@@ -91,6 +109,11 @@ export default {
       path === "/canal" ||
       path === "/controles" ||
       path === "/tarefas" ||
+      path === "/edital" ||
+      path === "/integracoes" ||
+      path === "/organizacoes" ||
+      path === "/juridico" ||
+      path === "/privacidade" ||
       path === "/relatorio" ||
       path === "/seguranca"
     ) {

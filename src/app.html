@@ -93,13 +93,24 @@
         <p>Tenant isolado · PoC Fase 1 · sebracompliance</p>
       </div>
       <nav aria-label="Seções">
-        <a href="#contratos" data-tab="contratos">Contratos</a>
-        <a href="#painel" data-tab="painel">Painel</a>
-        <a href="#controles" data-tab="controles">Controles</a>
-        <a href="#tarefas" data-tab="tarefas">Tarefas</a>
-        <a href="#terceiros" data-tab="terceiros">Terceiros</a>
-        <a href="#canal" data-tab="canal">Canal</a>
-        <a href="#relatorio" data-tab="relatorio">Relatório de segurança</a>
+        <p style="margin:0 0 4px;font-size:12px;color:var(--subtle)">Operação</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <a href="#contratos" data-tab="contratos">Contratos</a>
+          <a href="#painel" data-tab="painel">Painel</a>
+          <a href="#controles" data-tab="controles">Controles</a>
+          <a href="#tarefas" data-tab="tarefas">Tarefas</a>
+          <a href="#terceiros" data-tab="terceiros">Terceiros</a>
+          <a href="#canal" data-tab="canal">Canal</a>
+        </div>
+        <p style="margin:12px 0 4px;font-size:12px;color:var(--subtle)">Edital</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <a href="#privacidade" data-tab="privacidade">Privacidade</a>
+          <a href="#juridico" data-tab="juridico">Jurídico</a>
+          <a href="#organizacoes" data-tab="organizacoes">Organizações</a>
+          <a href="#integracoes" data-tab="integracoes">Integrações</a>
+          <a href="#edital" data-tab="edital">Edital</a>
+          <a href="#relatorio" data-tab="relatorio">Relatório de segurança</a>
+        </div>
       </nav>
       <p class="demo">DEMO. Contratos e hits são amostra da Fase 1 do TR (5 a 20 de um tipo). Não é base de produção do SEBRAE/RO. IA sugere. Humano decide.</p>
     </header>
@@ -110,7 +121,7 @@
   const TONE = { alto:"d", bloqueado:"d", sancao:"d", critica:"d", alta:"d", medio:"w", media:"w", pep:"w", limpo:"o", baixa:"o", real:"o", parcial:"w", simulado:"w", fora:"" };
   const LABEL = { real:"real na PoC", parcial:"parcial", simulado:"simulado", fora:"fora da Fase 1" };
   const HOJE = "2026-09-10";
-  let DATA = { CONTRATOS: [], TERCEIROS: [], NORMAS: [], GRUPOS: [], CONTROLES: [], TAREFAS: [], contagem: {} };
+  let DATA = { CONTRATOS: [], TERCEIROS: [], NORMAS: [], GRUPOS: [], CONTROLES: [], TAREFAS: [], TITULARES: [], ROPA: [], PROCESSOS: [], MEMBROS: [], COLABORADORES: [], EVENTOS: [], SISTEMAS: [], COBERTURA: {}, EDITAL: {SECTIONS:[],STACK:[],PHASES:[],SLA_SEV:[],RISKS_PEN:[],RISKS_OBR:[],RISKS_CONTR:[]}, contagem: {} };
   let open = 0, hitl = false, nota = "", msg = "", trilhas = {}, denuncias = [];
 
   const selo = (t, text) => `<span class="selo ${TONE[t]||""}">${esc(text)}</span>`;
@@ -118,7 +129,7 @@
 
   function tab() {
     const h = (location.hash || "#contratos").slice(1);
-    return ["contratos","painel","controles","tarefas","terceiros","canal","relatorio"].includes(h) ? h : "contratos";
+    return ["contratos","painel","controles","tarefas","terceiros","canal","privacidade","juridico","organizacoes","integracoes","edital","relatorio"].includes(h) ? h : "contratos";
   }
 
   function decidir(tipo) {
@@ -267,6 +278,130 @@
       <div class="grid mesa"><aside class="card list">${list}</aside>${ficha}</div>`;
   }
 
+  function privacidade() {
+    const t = DATA.TITULARES[window._topen||0];
+    window._bases = window._bases || {};
+    const list = DATA.TITULARES.map((x,i)=>`<button type="button" class="${i===(window._topen||0)?"on":""}" data-topen="${i}">
+      <span class="id">${esc(x.id)}</span><span style="display:block;font-size:14px">${esc(x.nome)}</span>
+      ${selo(window._bases[x.id]?"feita":"alta", window._bases[x.id]?"com base":x.base)}</button>`).join("");
+    const ropa = DATA.ROPA.map(r=>`<tr><td class="id">${esc(r.id)}</td><td>${esc(r.tratamento)}</td><td>${esc(r.hipotese)}</td><td>${esc(r.titulares)}</td></tr>`).join("");
+    return `<h2>Privacidade e titulares</h2>
+      <p style="color:var(--quiet)">Item 3.1 e 7. Operadora. Sem treino de modelo público. Nomes reduzidos.</p>
+      <div class="grid mesa"><aside class="card list">${list}</aside>
+      <article class="card ficha">
+        <div class="selos">${selo("",t.pedido)}${selo("",t.vinculo)}</div>
+        <h2>${esc(t.nome)}</h2>
+        <p style="color:var(--quiet)">Prazo ${esc(t.prazo)}</p>
+        <p style="font-size:14px">${window._bases[t.id]?esc("Base legal: "+window._bases[t.id]):"Sem consentimento. Agente de privacidade não cadastra."}</p>
+        <label class="hitl"><input type="checkbox" id="phitl"/> Confirmo revisão humana desta base legal</label>
+        <div class="actions"><button class="btn" id="pregistrar">Registrar hipótese legal</button></div>
+        <p class="ok" id="pmsg"></p>
+      </article></div>
+      <h3>ROPA da amostra</h3>
+      <table><thead><tr><th>Id</th><th>Tratamento</th><th>Hipótese</th><th>Titulares</th></tr></thead><tbody>${ropa}</tbody></table>`;
+  }
+
+  function juridico() {
+    const p = DATA.PROCESSOS[window._jopen||0];
+    window._classe = window._classe || {};
+    const list = DATA.PROCESSOS.map((x,i)=>`<button type="button" class="${i===(window._jopen||0)?"on":""}" data-jopen="${i}">
+      <span class="id">${esc(x.id)}</span><span style="display:block;font-size:14px">${esc(x.parte)}</span>${selo("",x.tipo)}</button>`).join("");
+    return `<h2>Gestão jurídica</h2>
+      <p style="color:var(--quiet)">Item 3.3. Espelho local. Sem tribunal nesta amostra.</p>
+      <div class="grid mesa"><aside class="card list">${list}</aside>
+      <article class="card ficha">
+        <div class="selos">${selo("",p.tipo)}${selo("", window._classe[p.id]||"pendente")}</div>
+        <h2>${esc(p.parte)}</h2>
+        <p class="id">${esc(p.cnpj)} · ${esc(p.data)}</p>
+        <p style="font-size:14px">${esc(p.movimento)}</p>
+        <p style="color:var(--quiet);font-size:14px">${esc(p.alerta)}</p>
+        <label class="hitl"><input type="checkbox" id="jhitl"/> Confirmo revisão humana desta movimentação</label>
+        <div class="actions">
+          <button class="btn" id="jnoticia">Classificar como notícia</button>
+          <button class="btn ghost" id="jproc">Classificar como processo</button>
+        </div>
+        <p class="ok" id="jmsg"></p>
+      </article></div>`;
+  }
+
+  function organizacoes() {
+    window._membros = window._membros || DATA.MEMBROS.slice();
+    window._folha = window._folha || "pronta para A1 e-CNPJ (DEMO)";
+    const rows = window._membros.map(m=>`<tr><td>${esc(m.nome)}</td><td>${selo("",m.papel)}</td><td class="id">${esc(m.email)}</td></tr>`).join("");
+    const cols = DATA.COLABORADORES.map(c=>`<tr><td class="id">${esc(c.id)}</td><td>${esc(c.nome)}</td><td>${esc(c.cargo)}</td><td>${esc(c.folha)}</td></tr>`).join("");
+    return `<h2>Organizações, membros e folha</h2>
+      <p style="color:var(--quiet)">Item 3.3. Um tenant. Convite e A1 são simulados.</p>
+      <article class="card ficha">
+        <div class="selos">${selo("","tenant")}${selo("","CNPJ 03.483.273/0001-09")}</div>
+        <h2>SEBRAE/RO</h2>
+        <p style="color:var(--quiet)">Porto Velho · Unidade de Integridade Corporativa</p>
+      </article>
+      <h3>Membros</h3>
+      <table><thead><tr><th>Nome</th><th>Papel</th><th>E-mail</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="actions">
+        <input type="email" id="convite" placeholder="pessoa@ro.demo" style="max-width:280px"/>
+        <button class="btn" id="convidar">Convidar</button>
+      </div>
+      <p class="ok" id="omsg"></p>
+      <h3>Colaboradores e folha</h3>
+      <p style="color:var(--quiet);font-size:14px">${esc(window._folha)}</p>
+      <button class="btn ghost" id="syncfolha">Simular sync e-CNPJ</button>
+      <table><thead><tr><th>Id</th><th>Nome</th><th>Cargo</th><th>Folha</th></tr></thead><tbody>${cols}</tbody></table>`;
+  }
+
+  function integracoes() {
+    window._eventos = window._eventos || DATA.EVENTOS.slice();
+    const sis = DATA.SISTEMAS.map(s=>`<article class="norma">${selo("simulado",s[1])}<p style="font-weight:600;margin:8px 0 0">${esc(s[0])}</p></article>`).join("");
+    const rows = window._eventos.map(e=>`<tr><td class="id">${esc(e.id)}</td><td>${selo(e.dir==="out"?"alta":"limpo",e.dir)}</td><td class="id">${esc(e.tipo)}</td><td>${esc(e.alvo)}</td><td class="id">${esc(e.quando)}</td><td>${esc(e.sistema)}</td></tr>`).join("");
+    return `<h2>Integrações do SEBRAE/RO</h2>
+      <p style="color:var(--quiet)">Item 3.4. Push inbound/outbound. Sem HMAC real.</p>
+      <div class="normas">${sis}</div>
+      <h3>Simular evento inbound</h3>
+      <div class="actions">
+        <select id="etipo"><option>contract.created</option><option>supplier.upserted</option><option>contract.updated</option></select>
+        <input id="ealvo" value="SGF-2026-0142" style="max-width:220px"/>
+        <button class="btn" id="eemitir">Aceitar push</button>
+      </div>
+      <p class="ok" id="emsg"></p>
+      <table><thead><tr><th>Id</th><th>Dir</th><th>Tipo</th><th>Alvo</th><th>Quando</th><th>Sistema</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  function edital() {
+    const secs = DATA.EDITAL.SECTIONS;
+    window._esec = window._esec || "func";
+    window._emark = window._emark || {};
+    const atual = secs.find(s=>s.id===window._esec) || secs[1];
+    const chips = secs.map(s=>`<button class="btn ${s.id===window._esec?"":"ghost"}" data-esec="${s.id}">${esc(s.code)} ${esc(s.label)}</button>`).join("");
+    const cob = DATA.COBERTURA[atual.id] || [];
+    const items = (atual.items||[]).map((it,i)=>{
+      const st = cob[i] || "simulado";
+      const key = atual.id+":"+i;
+      const on = window._emark[key];
+      return `<article class="card" style="padding:16px;margin-top:12px">
+        <div class="selos">${selo(it.crit,it.crit)}${selo(st,LABEL[st]||st)}</div>
+        <p style="font-size:14px"><strong>Requisito.</strong> ${esc(it.req)}</p>
+        <p style="font-size:14px"><strong>Solução.</strong> ${esc(it.sol)}</p>
+        ${it.note?`<p class="id">${esc(it.note)}</p>`:""}
+        <label class="hitl"><input type="checkbox" data-emark="${key}" ${on?"checked":""}/> Marcar como pronto na proposta</label>
+      </article>`;
+    }).join("");
+    let extra = "";
+    if (atual.id==="stack") extra = `<table><thead><tr><th>Camada</th><th>TR</th><th>PoC</th></tr></thead><tbody>${DATA.EDITAL.STACK.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join("")}</tbody></table>`;
+    if (atual.id==="plano") extra = `<div class="normas">${DATA.EDITAL.PHASES.map(p=>`<article class="norma">${selo("",p[1])}<p style="font-weight:600">${esc(p[0])}</p><p style="font-size:14px">${esc(p[2])}</p><p class="id">${esc(p[3])}</p></article>`).join("")}</div>`;
+    if (atual.id==="penal") extra = `<div class="normas">
+      <article class="norma"><h3>Penalidades</h3><ul>${DATA.EDITAL.RISKS_PEN.map(r=>`<li>${esc(String(r[1]).replace(/<\/?b>/g,""))}</li>`).join("")}</ul></article>
+      <article class="norma"><h3>Obrigações</h3><ul>${DATA.EDITAL.RISKS_OBR.map(r=>`<li>${esc(String(r[0]).replace(/<\/?b>/g,""))}</li>`).join("")}</ul></article>
+      <article class="norma"><h3>Contrato</h3><ul>${DATA.EDITAL.RISKS_CONTR.map(r=>`<li>${esc(String(r[0]).replace(/<\/?b>/g,""))}</li>`).join("")}</ul></article>
+    </div>`;
+    if (atual.id==="sla") extra = `<table><thead><tr><th>Severidade</th><th>Resposta</th><th>Solução</th></tr></thead><tbody>${DATA.EDITAL.SLA_SEV.map(r=>`<tr><td>${selo(r[0],r[1])}<div class="id">${esc(r[2])}</div></td><td class="id">${esc(r[3])}</td><td class="id">${esc(r[4])}</td></tr>`).join("")}</tbody></table>`;
+    return `<h2>Edital — dossiê do TR</h2>
+      <p style="color:var(--quiet)">Mapa item a item. O selo diz o que esta PoC no Cloudflare já cobre.</p>
+      <div class="actions" style="margin-bottom:16px">${chips}</div>
+      <h3>${esc(atual.title||atual.label)}</h3>
+      ${atual.lede?`<p style="color:var(--quiet)">${esc(atual.lede)}</p>`:""}
+      ${extra}${items}`;
+  }
+
   function canal() {
     return `<h2>Canal de integridade</h2>
       <p style="color:var(--quiet)">Anonimato opcional. Fluxo: triagem → classificação → investigação → relatório. Lei 12.846.</p>
@@ -319,6 +454,47 @@
       window._feitas[cur.t.id]=true; render();
     };
 
+
+    document.querySelectorAll("[data-topen]").forEach(b => b.onclick = () => { window._topen=+b.dataset.topen; render(); });
+    const pr = document.getElementById("pregistrar");
+    if (pr) pr.onclick = () => {
+      const t = DATA.TITULARES[window._topen||0];
+      const box = document.getElementById("phitl");
+      const m = document.getElementById("pmsg");
+      if (!box.checked) { m.textContent = "Marque a revisão humana. Titular não entra no cadastro sem base legal."; return; }
+      window._bases = window._bases || {}; window._bases[t.id] = "Art. 7º, V — execução de contrato"; render();
+    };
+    document.querySelectorAll("[data-jopen]").forEach(b => b.onclick = () => { window._jopen=+b.dataset.jopen; render(); });
+    function jclass(tipo){
+      const box = document.getElementById("jhitl");
+      const m = document.getElementById("jmsg");
+      if (!box || !box.checked) { if(m) m.textContent = "Marque a revisão humana. Clipping não vira sanção sozinho."; return; }
+      const p = DATA.PROCESSOS[window._jopen||0];
+      window._classe = window._classe || {}; window._classe[p.id] = tipo; render();
+    }
+    const jn = document.getElementById("jnoticia"); if (jn) jn.onclick = () => jclass("notícia adversa");
+    const jp = document.getElementById("jproc"); if (jp) jp.onclick = () => jclass("processo ativo");
+    const cv = document.getElementById("convidar");
+    if (cv) cv.onclick = () => {
+      const em = document.getElementById("convite").value.trim();
+      const m = document.getElementById("omsg");
+      if (!em) { m.textContent = "Informe o e-mail do convite."; return; }
+      window._membros = window._membros || DATA.MEMBROS.slice();
+      window._membros.push({ nome:"Convite pendente", papel:"analista", email:em });
+      render();
+    };
+    const sf = document.getElementById("syncfolha");
+    if (sf) sf.onclick = () => { window._folha = "Sincronização A1 simulada em " + new Date().toISOString().slice(0,16); render(); };
+    const ee = document.getElementById("eemitir");
+    if (ee) ee.onclick = () => {
+      window._eventos = window._eventos || DATA.EVENTOS.slice();
+      const id = "EVT-" + String(window._eventos.length+1).padStart(2,"0");
+      window._eventos.unshift({ id, dir:"in", tipo: document.getElementById("etipo").value, alvo: document.getElementById("ealvo").value, quando: new Date().toISOString().slice(0,16).replace("T"," "), sistema:"SGF (DEMO)" });
+      render();
+    };
+    document.querySelectorAll("[data-esec]").forEach(b => b.onclick = () => { window._esec = b.dataset.esec; render(); });
+    document.querySelectorAll("[data-emark]").forEach(b => b.onchange = e => { window._emark = window._emark || {}; window._emark[b.dataset.emark] = e.target.checked; });
+
     const f = document.getElementById("denuncia");
     if (f) f.onsubmit = e => {
       e.preventDefault();
@@ -335,18 +511,20 @@
 
   function render() {
     const t = tab();
-    document.getElementById("app").innerHTML = t==="painel"?painel():t==="controles"?controles():t==="tarefas"?tarefas():t==="terceiros"?terceiros():t==="canal"?canal():t==="relatorio"?relatorio():mesa();
+    const views = {painel,controles,tarefas,terceiros,canal,privacidade,juridico,organizacoes,integracoes,edital,relatorio};
+    document.getElementById("app").innerHTML = (views[t]||mesa)();
     bind();
   }
 
   async function boot() {
-    const [c, t, n, s, k, f] = await Promise.all([
+    const [c, t, n, s, k, f, cov] = await Promise.all([
       fetch("/api/contratos").then(r=>r.json()),
       fetch("/api/terceiros").then(r=>r.json()),
       fetch("/api/normas").then(r=>r.json()),
       fetch("/api/seguranca").then(r=>r.json()),
       fetch("/api/controles").then(r=>r.json()),
       fetch("/api/tarefas").then(r=>r.json()),
+      fetch("/api/cobertura").then(r=>r.json()),
     ]);
     DATA.CONTRATOS = c.data;
     DATA.TERCEIROS = t.data;
@@ -355,9 +533,10 @@
     DATA.TAREFAS = f.data;
     DATA.GRUPOS = s.grupos;
     DATA.contagem = { total:s.total, real:s.real, parcial:s.parcial, simulado:s.simulado, fora:s.fora };
+    Object.assign(DATA, cov.data);
     const path = location.pathname.replace(/\/+$/,"") || "/";
     if (!location.hash) {
-      const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
+      const map = { "/painel":"#painel", "/controles":"#controles", "/tarefas":"#tarefas", "/terceiros":"#terceiros", "/canal":"#canal", "/privacidade":"#privacidade", "/juridico":"#juridico", "/organizacoes":"#organizacoes", "/integracoes":"#integracoes", "/edital":"#edital", "/relatorio":"#relatorio", "/seguranca":"#relatorio" };
       if (map[path]) history.replaceState(null,"", map[path]);
     }
     render();
